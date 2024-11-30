@@ -1,17 +1,21 @@
 #include <string>
 #include <sys/socket.h>
+#include <sys/types.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <cstring>
+#include <iostream>
+#include <netdb.h>
 
 class TCPserver {
 public:
-    TCPserver(std::string ip, int port);
+    TCPserver();
     ~TCPserver();
     void startListen();
 
 private:
     int startServer();
 
-    sockaddr_in mSocketAddr;
-    int mSocket;
+    addrinfo hints, *res;
+    int sockfd;
 };
