@@ -1,6 +1,5 @@
 #include <string>
 #include <sys/socket.h>
-#include <sys/types.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <cstring>
@@ -17,5 +16,8 @@ private:
     int startServer();
 
     addrinfo hints, *res;
+    sockaddr_storage client_addr;
+    socklen_t addr_size;
     int sockfd;
+    int client_sockfd;
 };

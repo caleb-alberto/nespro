@@ -5,7 +5,7 @@ TCPserver::TCPserver() {
     hints.ai_family = AF_INET;
     hints.ai_socktype = SOCK_STREAM;
 
-    getaddrinfo("0.0.0.0", "http", &hints, &res); // NOLINT to ignore warning
+    getaddrinfo("0.0.0.0", "8080", &hints, &res); // NOLINT to ignore warning
 
     int server = startServer();
 
@@ -30,5 +30,17 @@ int TCPserver::startServer() {
 }
 
 void TCPserver::startListen() {
-    
+    if (listen(sockfd, 20) == -1) {
+        std::cerr << "Unable to listen\n";
+        exit(1);
+    }
+
+    while(true) {
+        addr_size = sizeof(client_addr);
+        client_sockfd = accept(sockfd, (sockaddr *)&client_addr, &addr_size);
+        if (client_sockfd == -1) {
+            std::cerr << "Unable to accept\n";
+            exit(1);
+        }
+    }
 }
