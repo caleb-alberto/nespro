@@ -1,11 +1,11 @@
 #include "tcpServer.h"
 
-TCPserver::TCPserver() {
+TCPserver::TCPserver(char* port) {
     memset(&hints, 0, sizeof hints);
     hints.ai_family = AF_INET;
     hints.ai_socktype = SOCK_STREAM;
 
-    getaddrinfo("0.0.0.0", "8080", &hints, &res); // NOLINT to ignore warning
+    getaddrinfo("0.0.0.0", port, &hints, &res); // NOLINT
 
     int server = startServer();
 
@@ -16,6 +16,9 @@ TCPserver::TCPserver() {
     else if (server == -1) {
         std::cerr << "Socket was unable to bind\n";
         exit(1);
+    }
+    else {
+        std::cout << "Server listening on Port: " << port << std::endl;
     }
 }
 
@@ -49,19 +52,19 @@ void TCPserver::startListen() {
         inet_ntop(AF_INET, &client_in->sin_addr, client_ip, INET_ADDRSTRLEN);
         std::cout << "Client connected from IP: " << client_ip << std::endl;
 
-        response = "HTTP/1.1 200 OK\r\n" //NOLINT
-            "Content-Type: text/html\r\n"
-            "Content-Length: 13\r\n"
-            "\r\n"
-            "Hello, World!";
+        response = "HTTP/1.1 200 OK\r\n"; //NOLINT
         res_len = strlen(response);
-        sendResponse();
+
+        for (int total_sent = 0; total_sent < res_len; ) {
+            int bytes_sent = send(client_sockfd, response + total_sent, res_len - total_sent, 0);
+
+            if (bytes_sent == -1) {
+                std::cerr << "Unable to send\n";
+                exit(1);
+            }
+            total_sent += bytes_sent;
+        }
 
         close(client_sockfd);
     }
-}
-
-void TCPserver::sendResponse() {
-    if (int send_len = send(client_sockfd, response, res_len, 0) < res_len || send_len == -1)
-        sendResponse();
 }

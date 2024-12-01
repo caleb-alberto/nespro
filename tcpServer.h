@@ -9,7 +9,7 @@
 
 class TCPserver {
 public:
-    TCPserver();
+    TCPserver(char* port = "8080"); // NOLINT
     ~TCPserver();
     void startListen();
 
