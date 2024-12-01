@@ -5,6 +5,7 @@
 #include <cstring>
 #include <iostream>
 #include <netdb.h>
+#include <unistd.h>
 
 class TCPserver {
 public:
@@ -14,10 +15,14 @@ public:
 
 private:
     int startServer();
+    void sendResponse();
 
     addrinfo hints, *res;
-    sockaddr_storage client_addr;
+    sockaddr_in client_addr;
+    char client_ip[INET_ADDRSTRLEN];
     socklen_t addr_size;
     int sockfd;
     int client_sockfd;
+    char* response;
+    int res_len;
 };
