@@ -9,13 +9,14 @@
 
 class TCPserver {
 public:
-    TCPserver(char* port = "8080"); // NOLINT
+    TCPserver(std::string port = "8080");
     ~TCPserver();
     void startListen();
 
 private:
     int startServer();
     void sendResponse();
+    int parseRecv(char * buf);
 
     addrinfo hints, *res;
     sockaddr_in client_addr;
@@ -23,6 +24,6 @@ private:
     socklen_t addr_size;
     int sockfd;
     int client_sockfd;
-    char* response;
+    std::string response;
     int res_len;
 };
