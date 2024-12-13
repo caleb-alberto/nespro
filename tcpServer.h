@@ -1,3 +1,4 @@
+#include <map>
 #include <string>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -6,6 +7,11 @@
 #include <iostream>
 #include <netdb.h>
 #include <unistd.h>
+
+struct Request {
+    std::string method;
+    std::string path;
+};
 
 class TCPserver {
 public:
@@ -16,7 +22,7 @@ public:
 private:
     int startServer();
     void sendResponse();
-    int parseRecv(char * buf);
+    std::string buildRes(const Request & msg);
 
     addrinfo hints, *res;
     sockaddr_in client_addr;

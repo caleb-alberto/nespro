@@ -1,4 +1,8 @@
 #include "tcpServer.h"
+#include <cstddef>
+#include <cstring>
+#include <iostream>
+#include <string>
 
 TCPserver::TCPserver(std::string port) {
     memset(&hints, 0, sizeof hints);
@@ -52,21 +56,25 @@ void TCPserver::startListen() {
         inet_ntop(AF_INET, &client_in->sin_addr, client_ip, INET_ADDRSTRLEN);
         std::cout << "Client connected from IP: " << client_ip << std::endl;
 
-        char* buf = new char[16096];
-        int bytes_recv = recv(client_sockfd, buf, 16096, 0);
+        char* buf = new char[100];
+        int bytes_recv = recv(client_sockfd, buf, 100, 0);
 
-        parseRecv(buf);
+        Request req_msg;
+
+        std::string parsed_msg = strtok(buf, " ");
+        req_msg.method = parsed_msg;
+        parsed_msg = strtok(NULL, " ");
+        req_msg.path = parsed_msg;
+
         delete[] buf;
 
-        response = "HTTP/1.1 200 OK\r\n"
-            "Content-Type: text/plain\r\n"
-            "Content-Length: 0\r\n"
-            "\r\n"
-            "";
+        response = buildRes(req_msg);
         res_len = response.size();
 
         for (int total_sent = 0; total_sent < res_len; ) {
-            int bytes_sent = send(client_sockfd, response.substr(total_sent).c_str(), res_len - total_sent, 0);
+            int bytes_sent = send(client_sockfd,
+                                  response.substr(total_sent).c_str(),
+                                  res_len - total_sent, 0);
 
             if (bytes_sent == -1) {
                 std::cerr << "Unable to send\n";
@@ -79,4 +87,19 @@ void TCPserver::startListen() {
     }
 }
 
-int TCPserver::parseRecv(char * buf) {return 0;}
+std::string TCPserver::buildRes(const Request & msg) {
+    if (msg.path == "/") {
+        // build index.html response
+    }
+    else if (msg.path == "/other_valid_endpoint") {
+        // build other_valid_endpoint response
+    }
+    else {
+        if (msg.method == "GET") {
+            // build message with 404
+        }
+        else {
+            // build message with 400
+        }
+    }
+}
