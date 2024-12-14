@@ -7,10 +7,13 @@
 #include <iostream>
 #include <netdb.h>
 #include <unistd.h>
+#include <bits/stdc++.h>
 
 struct Request {
     std::string method;
     std::string path;
+    std::string version;
+    std::map<std::string, std::string> header_map;
 };
 
 class TCPserver {
@@ -23,6 +26,8 @@ private:
     int startServer();
     void sendResponse();
     std::string buildRes(const Request & msg);
+    std::string recvReq(const int socket);
+    Request parseReq(std::string req);
 
     addrinfo hints, *res;
     sockaddr_in client_addr;
@@ -31,5 +36,6 @@ private:
     int sockfd;
     int client_sockfd;
     std::string response;
+    std::string req_str;
     int res_len;
 };

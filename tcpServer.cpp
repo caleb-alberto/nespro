@@ -1,8 +1,10 @@
 #include "tcpServer.h"
-#include <cstddef>
-#include <cstring>
+#include <cstdio>
 #include <iostream>
+#include <istream>
+#include <sstream>
 #include <string>
+#include <vector>
 
 TCPserver::TCPserver(std::string port) {
     memset(&hints, 0, sizeof hints);
@@ -56,25 +58,16 @@ void TCPserver::startListen() {
         inet_ntop(AF_INET, &client_in->sin_addr, client_ip, INET_ADDRSTRLEN);
         std::cout << "Client connected from IP: " << client_ip << std::endl;
 
-        char* buf = new char[100];
-        int bytes_recv = recv(client_sockfd, buf, 100, 0);
-
-        Request req_msg;
-
-        std::string parsed_msg = strtok(buf, " ");
-        req_msg.method = parsed_msg;
-        parsed_msg = strtok(NULL, " ");
-        req_msg.path = parsed_msg;
-
-        delete[] buf;
-
+        req_str = recvReq(client_sockfd);
+        Request req_msg = parseReq(req_str);
         response = buildRes(req_msg);
         res_len = response.size();
 
         for (int total_sent = 0; total_sent < res_len; ) {
             int bytes_sent = send(client_sockfd,
                                   response.substr(total_sent).c_str(),
-                                  res_len - total_sent, 0);
+                                  res_len - total_sent,
+                                  0);
 
             if (bytes_sent == -1) {
                 std::cerr << "Unable to send\n";
@@ -85,6 +78,67 @@ void TCPserver::startListen() {
 
         close(client_sockfd);
     }
+}
+
+std::string TCPserver::recvReq(const int socket) {
+    const int buf_size = 1024;
+    char buf[buf_size];
+
+    int bytes_recv;
+
+    while (true) {
+        bytes_recv = recv(socket, buf, buf_size, 0);
+
+        if (bytes_recv == -1) {
+            std::cerr << "Unable to recieve message\n";
+            break;
+        }
+        else if (bytes_recv == 0) {
+            std::cout << "Client disconnected\n";
+            break;
+        }
+
+        buf[bytes_recv] = '\0';
+        req_str.append(buf);
+
+        if (req_str.find("\r\n\r\n") != std::string::npos) {
+            break;
+        }
+    }
+    return req_str;
+}
+
+Request TCPserver::parseReq(std::string req) {
+    Request temp;
+
+    if (req.size() < 1)
+        return temp;
+
+    std::istringstream init_stream(req);
+    std::string token;
+    std::vector<std::string> tokens;
+
+    while (std::getline(init_stream, token, '\n'))
+        tokens.push_back(token);
+
+    std::istringstream startline_stream(tokens[0]);
+    std::getline(startline_stream, temp.method, ' ');
+    std::getline(startline_stream, temp.path, ' ');
+    std::getline(startline_stream, temp.version, '\n');
+
+    for (int i = 1; i != tokens.size(); i++) {
+        std::istringstream header_stream(tokens[i]);
+        std::string header_key;
+        std::string header_value;
+
+        std::getline(header_stream, header_key, ':');
+        std::getline(header_stream, header_value, '\n');
+        header_value.erase(0, header_value.find_first_not_of(" \t"));
+
+        temp.header_map[header_key] = header_value;
+    }
+
+    return temp;
 }
 
 std::string TCPserver::buildRes(const Request & msg) {
@@ -102,4 +156,5 @@ std::string TCPserver::buildRes(const Request & msg) {
             // build message with 400
         }
     }
+    return "200 OK\n";
 }
