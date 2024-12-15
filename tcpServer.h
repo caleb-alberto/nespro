@@ -8,6 +8,9 @@
 #include <netdb.h>
 #include <unistd.h>
 #include <bits/stdc++.h>
+#include <cstdio>
+#include <sstream>
+#include <vector>
 
 struct Request {
     std::string method;

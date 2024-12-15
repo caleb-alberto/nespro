@@ -1,17 +1,12 @@
 #include "tcpServer.h"
-#include <cstdio>
-#include <iostream>
-#include <istream>
-#include <sstream>
-#include <string>
-#include <vector>
 
 TCPserver::TCPserver(std::string port) {
     memset(&hints, 0, sizeof hints);
     hints.ai_family = AF_INET;
     hints.ai_socktype = SOCK_STREAM;
+    hints.ai_flags = AI_PASSIVE;
 
-    getaddrinfo("0.0.0.0", port.c_str(), &hints, &res); // NOLINT
+    getaddrinfo(NULL, port.c_str(), &hints, &res); // NOLINT
 
     int server = startServer();
 
@@ -60,6 +55,7 @@ void TCPserver::startListen() {
 
         req_str = recvReq(client_sockfd);
         Request req_msg = parseReq(req_str);
+        std::cout << req_msg.path << '\n';
         response = buildRes(req_msg);
         res_len = response.size();
 
@@ -76,6 +72,7 @@ void TCPserver::startListen() {
             total_sent += bytes_sent;
         }
 
+        req_str = "";
         close(client_sockfd);
     }
 }
@@ -124,7 +121,8 @@ Request TCPserver::parseReq(std::string req) {
     std::istringstream startline_stream(tokens[0]);
     std::getline(startline_stream, temp.method, ' ');
     std::getline(startline_stream, temp.path, ' ');
-    std::getline(startline_stream, temp.version, '\n');
+    std::getline(startline_stream, temp.version, '\r');
+    temp.version.erase(temp.version.find_last_not_of(" \t") + 1);
 
     for (int i = 1; i != tokens.size(); i++) {
         std::istringstream header_stream(tokens[i]);
@@ -132,8 +130,9 @@ Request TCPserver::parseReq(std::string req) {
         std::string header_value;
 
         std::getline(header_stream, header_key, ':');
-        std::getline(header_stream, header_value, '\n');
+        std::getline(header_stream, header_value, '\r');
         header_value.erase(0, header_value.find_first_not_of(" \t"));
+        header_value.erase(header_value.find_last_not_of(" \t") + 1);
 
         temp.header_map[header_key] = header_value;
     }
@@ -142,11 +141,38 @@ Request TCPserver::parseReq(std::string req) {
 }
 
 std::string TCPserver::buildRes(const Request & msg) {
+    std::string res_msg;
+
+    if (!msg.header_map.count("Host"))
+        return "HTTP/1.1 400 Bad Request\r\n"
+            "Content-Type: text/html\r\n"
+            "Content-Length: 111\r\n"
+            "\r\n"
+            "<html><body>"
+            "<h2>No Host: header received</h2>"
+            "HTTP 1.1 requests must include the Host: header."
+            "</body></html>";
+
     if (msg.path == "/") {
-        // build index.html response
+        res_msg = "HTTP/1.1 200 OK\r\n"
+            "Content-Type: text/html\r\n"
+            "Content-Length: 137\r\n"
+            "\r\n"
+            "<html><body>"
+            "<h2>Welcome to My Website</h2>"
+            "<p>Your request was successfully processed!</p>"
+            "</body></html>";
     }
-    else if (msg.path == "/other_valid_endpoint") {
-        // build other_valid_endpoint response
+    else if (msg.path == "/favicon.ico") {
+        res_msg = "HTTP/1.1 404 Not Found\r\n"
+                    "Content-Type: text/html\r\n"
+                    "Content-Length: 159\r\n"
+                    "Cache-Control: no-store\r\n"
+                    "Connection: close\r\n\r\n"
+                    "<html><body>"
+                    "<h1>404 Not Found</h1>"
+                    "<p>Sorry, we don't have a favicon for you at the moment.</p>"
+                    "</body></html>";
     }
     else {
         if (msg.method == "GET") {
@@ -156,5 +182,5 @@ std::string TCPserver::buildRes(const Request & msg) {
             // build message with 400
         }
     }
-    return "200 OK\n";
+    return res_msg;
 }
