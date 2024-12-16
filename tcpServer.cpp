@@ -1,7 +1,7 @@
 #include "tcpServer.h"
-#include <stdexcept>
+using namespace std;
 
-TCPserver::TCPserver(std::string port) {
+TCPserver::TCPserver(string port) {
     memset(&hints, 0, sizeof hints);
     hints.ai_family = AF_INET;
     hints.ai_socktype = SOCK_STREAM;
@@ -12,15 +12,15 @@ TCPserver::TCPserver(std::string port) {
     int server = startServer();
 
     if (server == 1) {
-        std::cerr << "Socket was unable to be created\n";
+        cerr << "Socket was unable to be created\n";
         exit(1);
     }
     else if (server == -1) {
-        std::cerr << "Socket was unable to bind\n";
+        cerr << "Socket was unable to bind\n";
         exit(1);
     }
     else {
-        std::cout << "Server listening on Port: " << port << std::endl;
+        cout << "Server listening on Port: " << port << std::endl;
     }
 }
 
@@ -36,27 +36,27 @@ int TCPserver::startServer() {
 
 void TCPserver::startListen() {
     if (listen(sockfd, 20) == -1) {
-        std::cerr << "Unable to listen\n";
+        cerr << "Unable to listen\n";
         exit(1);
     }
-    std::cout << "Socket is listening\n";
+    cout << "Socket is listening\n";
 
     while(true) {
         addr_size = sizeof(client_addr);
         client_sockfd = accept(sockfd, (sockaddr *)&client_addr, &addr_size);
 
         if (client_sockfd == -1) {
-            std::cerr << "Unable to accept\n";
+            cerr << "Unable to accept\n";
             exit(1);
         }
 
         sockaddr_in* client_in = (sockaddr_in*)&client_addr;
         inet_ntop(AF_INET, &client_in->sin_addr, client_ip, INET_ADDRSTRLEN);
-        std::cout << "Client connected from IP: " << client_ip << std::endl;
+        cout << "Client connected from IP: " << client_ip << std::endl;
 
         req_str = recvReq(client_sockfd);
         Request req_msg = parseReq(req_str);
-        std::cout << req_msg.path << '\n';
+        cout << req_msg.path << '\n';
         response = buildRes(req_msg);
         res_len = response.size();
 
@@ -67,7 +67,7 @@ void TCPserver::startListen() {
                                   0);
 
             if (bytes_sent == -1) {
-                std::cerr << "Unable to send\n";
+                cerr << "Unable to send\n";
                 exit(1);
             }
             total_sent += bytes_sent;
@@ -78,7 +78,7 @@ void TCPserver::startListen() {
     }
 }
 
-std::string TCPserver::recvReq(const int socket) {
+string TCPserver::recvReq(const int socket) {
     const int buf_size = 1024;
     char buf[buf_size];
 
@@ -88,41 +88,41 @@ std::string TCPserver::recvReq(const int socket) {
         bytes_recv = recv(socket, buf, buf_size, 0);
 
         if (bytes_recv == -1) {
-            std::cerr << "Unable to recieve message\n";
+            cerr << "Unable to recieve message\n";
             break;
         }
         else if (bytes_recv == 0) {
-            std::cout << "Client disconnected\n";
+            cout << "Client disconnected\n";
             break;
         }
 
         buf[bytes_recv] = '\0';
         req_str.append(buf);
 
-        if (req_str.find("\r\n\r\n") != std::string::npos) {
+        if (req_str.find("\r\n\r\n") != string::npos) {
             break;
         }
     }
     return req_str;
 }
 
-Request TCPserver::parseReq(std::string req) {
+Request TCPserver::parseReq(string req) {
     Request temp;
 
     if (req.size() < 1)
         return temp;
 
-    std::istringstream init_stream(req);
-    std::string token;
-    std::vector<std::string> tokens;
+    istringstream init_stream(req);
+    string token;
+    vector<std::string> tokens;
 
-    while (std::getline(init_stream, token, '\n'))
+    while (getline(init_stream, token, '\n'))
         tokens.push_back(token);
 
-    std::istringstream startline_stream(tokens[0]);
-    std::getline(startline_stream, temp.method, ' ');
-    std::getline(startline_stream, temp.path, ' ');
-    std::getline(startline_stream, temp.version, '\r');
+    istringstream startline_stream(tokens[0]);
+    getline(startline_stream, temp.method, ' ');
+    getline(startline_stream, temp.path, ' ');
+    getline(startline_stream, temp.version, '\r');
     temp.version.erase(temp.version.find_last_not_of(" \t") + 1);
 
     if (temp.path.at(0) != '/') {
@@ -131,16 +131,16 @@ Request TCPserver::parseReq(std::string req) {
             int second = temp.path.find('/', first+1);
             temp.path = temp.path.substr(temp.path.find('/', second+1));
         }
-        catch (std::out_of_range) {}
+        catch (out_of_range) {}
     }
 
     for (int i = 1; i != tokens.size(); i++) {
-        std::istringstream header_stream(tokens[i]);
-        std::string header_key;
-        std::string header_value;
+        istringstream header_stream(tokens[i]);
+        string header_key;
+        string header_value;
 
-        std::getline(header_stream, header_key, ':');
-        std::getline(header_stream, header_value, '\r');
+        getline(header_stream, header_key, ':');
+        getline(header_stream, header_value, '\r');
         header_value.erase(0, header_value.find_first_not_of(" \t"));
         header_value.erase(header_value.find_last_not_of(" \t") + 1);
 
@@ -150,13 +150,13 @@ Request TCPserver::parseReq(std::string req) {
     return temp;
 }
 
-std::string TCPserver::buildRes(const Request & msg) {
-    std::string res_msg;
-    std::time_t t = std::time(nullptr);
-    std::tm* gmt = std::gmtime(&t);
-    std::ostringstream oss;
-    oss << std::put_time(gmt, "%a, %d %b %Y %H:%M:%S GMT");
-    std::string time = oss.str();
+string TCPserver::buildRes(const Request & msg) {
+    string res_msg;
+    time_t t = std::time(nullptr);
+    tm* gmt = std::gmtime(&t);
+    ostringstream oss;
+    oss << put_time(gmt, "%a, %d %b %Y %H:%M:%S GMT");
+    string time = oss.str();
 
     if (!msg.header_map.count("Host"))
         res_msg = "HTTP/1.1 400 Bad Request\r\n"
