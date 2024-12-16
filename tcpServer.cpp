@@ -1,4 +1,5 @@
 #include "tcpServer.h"
+#include <stdexcept>
 
 TCPserver::TCPserver(std::string port) {
     memset(&hints, 0, sizeof hints);
@@ -124,6 +125,15 @@ Request TCPserver::parseReq(std::string req) {
     std::getline(startline_stream, temp.version, '\r');
     temp.version.erase(temp.version.find_last_not_of(" \t") + 1);
 
+    if (temp.path.at(0) != '/') {
+        try {
+            int first = temp.path.find('/');
+            int second = temp.path.find('/', first+1);
+            temp.path = temp.path.substr(temp.path.find('/', second+1));
+        }
+        catch (std::out_of_range) {}
+    }
+
     for (int i = 1; i != tokens.size(); i++) {
         std::istringstream header_stream(tokens[i]);
         std::string header_key;
@@ -142,45 +152,102 @@ Request TCPserver::parseReq(std::string req) {
 
 std::string TCPserver::buildRes(const Request & msg) {
     std::string res_msg;
+    std::time_t t = std::time(nullptr);
+    std::tm* gmt = std::gmtime(&t);
+    std::ostringstream oss;
+    oss << std::put_time(gmt, "%a, %d %b %Y %H:%M:%S GMT");
+    std::string time = oss.str();
 
     if (!msg.header_map.count("Host"))
-        return "HTTP/1.1 400 Bad Request\r\n"
+        res_msg = "HTTP/1.1 400 Bad Request\r\n"
             "Content-Type: text/html\r\n"
-            "Content-Length: 111\r\n"
+            "Date: " + time + "\r\n"
+            "Content-Length: 107\r\n"
+            "Connection: close\r\n"
             "\r\n"
             "<html><body>"
             "<h2>No Host: header received</h2>"
             "HTTP 1.1 requests must include the Host: header."
             "</body></html>";
 
-    if (msg.path == "/") {
-        res_msg = "HTTP/1.1 200 OK\r\n"
-            "Content-Type: text/html\r\n"
-            "Content-Length: 137\r\n"
-            "\r\n"
-            "<html><body>"
-            "<h2>Welcome to My Website</h2>"
-            "<p>Your request was successfully processed!</p>"
-            "</body></html>";
+    else if (msg.path == "/") {
+        if (msg.method == "GET")
+            res_msg = "HTTP/1.1 200 OK\r\n"
+                "Content-Type: text/html\r\n"
+                "Date: " + time + "\r\n"
+                "Content-Length: 103\r\n"
+                "Connection: close\r\n"
+                "\r\n"
+                "<html><body>"
+                "<h2>Welcome to My Website</h2>"
+                "<p>Your request was successfully processed!</p>"
+                "</body></html>";
+        else if (msg.method == "HEAD")
+            res_msg = "HTTP/1.1 200 OK\r\n"
+                "Content-Type: text/html\r\n"
+                "Date: " + time + "\r\n"
+                "Content-Length: 103\r\n"
+                "Connection: close\r\n"
+                "\r\n";
     }
+
     else if (msg.path == "/favicon.ico") {
-        res_msg = "HTTP/1.1 404 Not Found\r\n"
-                    "Content-Type: text/html\r\n"
-                    "Content-Length: 159\r\n"
-                    "Cache-Control: no-store\r\n"
-                    "Connection: close\r\n\r\n"
-                    "<html><body>"
-                    "<h1>404 Not Found</h1>"
-                    "<p>Sorry, we don't have a favicon for you at the moment.</p>"
-                    "</body></html>";
+        if (msg.method == "GET")
+            res_msg = "HTTP/1.1 404 Not Found\r\n"
+                "Content-Type: text/html\r\n"
+                "Date: " + time + "\r\n"
+                "Content-Length: 108\r\n"
+                "Connection: close\r\n"
+                "\r\n"
+                "<html><body>"
+                "<h1>404 Not Found</h1>"
+                "<p>"
+                "Sorry, we don't have a favicon for you at the moment."
+                "</p>"
+                "</body></html>";
+        else if (msg.method == "HEAD")
+            res_msg = "HTTP/1.1 404 Not Found\r\n"
+                "Content-Type: text/html\r\n"
+                "Date: " + time + "\r\n"
+                "Content-Length: 108\r\n"
+                "Connection: close\r\n"
+                "\r\n";
     }
+
     else {
-        if (msg.method == "GET") {
-            // build message with 404
-        }
-        else {
-            // build message with 400
-        }
+        if (msg.method == "GET")
+            res_msg = "HTTP/1.1 404 Not Found\r\n"
+                "Content-Type: text/html\r\n"
+                "Date: " + time + "\r\n"
+                "Content-Length: 77\r\n"
+                "Connection: close\r\n"
+                "\r\n"
+                "<html><body>"
+                "<h1>404 Not Found</h1>"
+                "<p>"
+                "Invalid page requested"
+                "</p>"
+                "</body></html>";
+        else if (msg.method == "GET")
+            res_msg = "HTTP/1.1 404 Not Found\r\n"
+                "Content-Type: text/html\r\n"
+                "Date: " + time + "\r\n"
+                "Content-Length: 77\r\n"
+                "Connection: close\r\n"
+                "\r\n";
+        else
+            res_msg = "HTTP/1.1 400 Bad Request\r\n"
+                "Content-Type: text/html\r\n"
+                "Date: " + time + "\r\n"
+                "Content-Length: 70\r\n"
+                "Connection: close\r\n"
+                "\r\n"
+                "<html><body>"
+                "<h1>400 Not Found</h1>"
+                "<p>"
+                "Invalid request"
+                "</p>"
+                "</body></html>";
     }
     return res_msg;
 }
