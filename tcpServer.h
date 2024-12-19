@@ -1,3 +1,4 @@
+#include <fstream>
 #include <map>
 #include <string>
 #include <stdexcept>
@@ -25,12 +26,12 @@ class TCPserver {
 public:
     TCPserver(std::string port = "8080");
     ~TCPserver();
-    void startListen();
+    void startListen(std::ifstream& index);
 
 private:
     int startServer();
     void sendResponse();
-    std::string buildRes(const Request & msg);
+    std::string buildRes(const Request & msg, std::ifstream& index);
     std::string recvReq(const int socket);
     Request parseReq(std::string req);
 

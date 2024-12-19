@@ -20,7 +20,7 @@ TCPserver::TCPserver(string port) {
         exit(1);
     }
     else {
-        cout << "Server listening on Port: " << port << std::endl;
+        cout << "Server listening on Port: " << port << endl;
     }
 }
 
@@ -31,10 +31,10 @@ TCPserver::~TCPserver() {
 int TCPserver::startServer() {
     sockfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
     if (sockfd == -1) { return 1; }
-    return bind(sockfd, res->ai_addr, res->ai_addrlen);
+    return ::bind(sockfd, res->ai_addr, res->ai_addrlen);
 }
 
-void TCPserver::startListen() {
+void TCPserver::startListen(ifstream& index) {
     if (listen(sockfd, 20) == -1) {
         cerr << "Unable to listen\n";
         exit(1);
@@ -52,12 +52,12 @@ void TCPserver::startListen() {
 
         sockaddr_in* client_in = (sockaddr_in*)&client_addr;
         inet_ntop(AF_INET, &client_in->sin_addr, client_ip, INET_ADDRSTRLEN);
-        cout << "Client connected from IP: " << client_ip << std::endl;
+        cout << "Client connected from IP: " << client_ip << endl;
 
         req_str = recvReq(client_sockfd);
         Request req_msg = parseReq(req_str);
-        cout << req_msg.path << '\n';
-        response = buildRes(req_msg);
+        cout << req_msg.path << endl;
+        response = buildRes(req_msg, index);
         res_len = response.size();
 
         for (int total_sent = 0; total_sent < res_len; ) {
@@ -114,7 +114,7 @@ Request TCPserver::parseReq(string req) {
 
     istringstream init_stream(req);
     string token;
-    vector<std::string> tokens;
+    vector<string> tokens;
 
     while (getline(init_stream, token, '\n'))
         tokens.push_back(token);
@@ -131,7 +131,7 @@ Request TCPserver::parseReq(string req) {
             int second = temp.path.find('/', first+1);
             temp.path = temp.path.substr(temp.path.find('/', second+1));
         }
-        catch (out_of_range) {}
+        catch (out_of_range) {} //just ignore it
     }
 
     for (int i = 1; i != tokens.size(); i++) {
@@ -150,13 +150,20 @@ Request TCPserver::parseReq(string req) {
     return temp;
 }
 
-string TCPserver::buildRes(const Request & msg) {
+string TCPserver::buildRes(const Request & msg, ifstream& index) {
     string res_msg;
-    time_t t = std::time(nullptr);
-    tm* gmt = std::gmtime(&t);
+    time_t t = time(nullptr);
+    tm* gmt = gmtime(&t);
     ostringstream oss;
     oss << put_time(gmt, "%a, %d %b %Y %H:%M:%S GMT");
     string time = oss.str();
+
+    string static_file;
+    string line;
+
+    while (getline(index, line)) {
+        static_file += line;
+    }
 
     if (!msg.header_map.count("Host"))
         res_msg = "HTTP/1.1 400 Bad Request\r\n"
@@ -175,18 +182,19 @@ string TCPserver::buildRes(const Request & msg) {
             res_msg = "HTTP/1.1 200 OK\r\n"
                 "Content-Type: text/html\r\n"
                 "Date: " + time + "\r\n"
-                "Content-Length: 103\r\n"
+                "Content-Length: "
+                + to_string(static_file.size()) +
+                "\r\n"
                 "Connection: close\r\n"
                 "\r\n"
-                "<html><body>"
-                "<h2>Welcome to My Website</h2>"
-                "<p>Your request was successfully processed!</p>"
-                "</body></html>";
+                + static_file;
         else if (msg.method == "HEAD")
             res_msg = "HTTP/1.1 200 OK\r\n"
                 "Content-Type: text/html\r\n"
                 "Date: " + time + "\r\n"
-                "Content-Length: 103\r\n"
+                "Content-Length: "
+                + to_string(static_file.size()) +
+                "\r\n"
                 "Connection: close\r\n"
                 "\r\n";
     }

@@ -1,6 +1,9 @@
 #include "tcpServer.h"
+using namespace std;
 
 int main() {
     TCPserver server;
-    server.startListen();
+    ifstream index("./index.html");
+
+    server.startListen(index);
 }
