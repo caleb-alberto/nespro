@@ -34,7 +34,7 @@ int TCPserver::startServer() {
     return ::bind(sockfd, res->ai_addr, res->ai_addrlen);
 }
 
-void TCPserver::startListen(ifstream& index) {
+void TCPserver::startListen(string index) {
     if (listen(sockfd, 20) == -1) {
         cerr << "Unable to listen\n";
         exit(1);
@@ -56,7 +56,7 @@ void TCPserver::startListen(ifstream& index) {
 
         req_str = recvReq(client_sockfd);
         Request req_msg = parseReq(req_str);
-        cout << req_msg.path << endl;
+
         response = buildRes(req_msg, index);
         res_len = response.size();
 
@@ -131,7 +131,7 @@ Request TCPserver::parseReq(string req) {
             int second = temp.path.find('/', first+1);
             temp.path = temp.path.substr(temp.path.find('/', second+1));
         }
-        catch (out_of_range) {} //just ignore it
+        catch (out_of_range) {} // just ignore it
     }
 
     for (int i = 1; i != tokens.size(); i++) {
@@ -150,7 +150,7 @@ Request TCPserver::parseReq(string req) {
     return temp;
 }
 
-string TCPserver::buildRes(const Request & msg, ifstream& index) {
+string TCPserver::buildRes(const Request & msg, string index) {
     string res_msg;
     time_t t = time(nullptr);
     tm* gmt = gmtime(&t);
@@ -158,10 +158,11 @@ string TCPserver::buildRes(const Request & msg, ifstream& index) {
     oss << put_time(gmt, "%a, %d %b %Y %H:%M:%S GMT");
     string time = oss.str();
 
+    ifstream idx_stream(index);
     string static_file;
     string line;
 
-    while (getline(index, line)) {
+    while (getline(idx_stream, line)) {
         static_file += line;
     }
 
