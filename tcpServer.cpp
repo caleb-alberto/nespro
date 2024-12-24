@@ -1,11 +1,12 @@
 #include "tcpServer.h"
 using namespace std;
 
-TCPserver::TCPserver(string port) {
+TCPserver::TCPserver(string port, string html_dir) {
     memset(&hints, 0, sizeof hints);
     hints.ai_family = AF_INET;
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_flags = AI_PASSIVE;
+    dir = html_dir;
 
     getaddrinfo(NULL, port.c_str(), &hints, &res); // NOLINT
 
@@ -34,7 +35,7 @@ int TCPserver::startServer() {
     return ::bind(sockfd, res->ai_addr, res->ai_addrlen);
 }
 
-void TCPserver::startListen(string index) {
+void TCPserver::startListen() {
     if (listen(sockfd, 20) == -1) {
         cerr << "Unable to listen\n";
         exit(1);
@@ -57,7 +58,7 @@ void TCPserver::startListen(string index) {
         req_str = recvReq(client_sockfd);
         Request req_msg = parseReq(req_str);
 
-        response = buildRes(req_msg, index);
+        response = buildRes(req_msg, parseStatDir(dir));
         res_len = response.size();
 
         for (int total_sent = 0; total_sent < res_len; ) {
@@ -150,7 +151,22 @@ Request TCPserver::parseReq(string req) {
     return temp;
 }
 
-string TCPserver::buildRes(const Request & msg, string index) {
+vector<string> TCPserver::parseStatDir(string dir) {
+    vector<string> paths;
+
+    if (std::filesystem::exists(dir)) {
+        for (auto path : std::filesystem::directory_iterator(dir))
+            paths.push_back(path.path());
+    }
+    else {
+        cerr << "Directory not found\n";
+        exit(1);
+    }
+
+    return paths;
+}
+
+string TCPserver::buildRes(const Request & msg, vector<string> paths) {
     string res_msg;
     time_t t = time(nullptr);
     tm* gmt = gmtime(&t);
@@ -158,11 +174,24 @@ string TCPserver::buildRes(const Request & msg, string index) {
     oss << put_time(gmt, "%a, %d %b %Y %H:%M:%S GMT");
     string time = oss.str();
 
-    ifstream idx_stream(index);
+    ifstream file_stream;
+    bool valid_path = false;
+
+    for (auto fpath : paths) {
+        int path_len = fpath.find('.') - fpath.find('/');
+        if (fpath.substr(fpath.find('/'), path_len) == msg.path
+            || fpath.substr(fpath.find('/') + 1) == "index.html"
+            && msg.path == "/") {
+            file_stream.open(fpath);
+            valid_path = true;
+            break;
+        }
+    }
+
     string static_file;
     string line;
 
-    while (getline(idx_stream, line)) {
+    while (getline(file_stream, line)) {
         static_file += line;
     }
 
@@ -178,7 +207,7 @@ string TCPserver::buildRes(const Request & msg, string index) {
             "HTTP 1.1 requests must include the Host: header."
             "</body></html>";
 
-    else if (msg.path == "/") {
+    else if (valid_path) {
         if (msg.method == "GET")
             res_msg = "HTTP/1.1 200 OK\r\n"
                 "Content-Type: text/html\r\n"

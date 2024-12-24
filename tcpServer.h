@@ -1,4 +1,5 @@
 #include <fstream>
+#include <filesystem>
 #include <map>
 #include <string>
 #include <stdexcept>
@@ -24,17 +25,19 @@ struct Request {
 
 class TCPserver {
 public:
-    TCPserver(std::string port = "8080");
+    TCPserver(std::string port = "8080", std::string html_dir = "");
     ~TCPserver();
-    void startListen(std::string index);
+    void startListen();
 
 private:
     int startServer();
     void sendResponse();
-    std::string buildRes(const Request & msg, std::string index);
+    std::string buildRes(const Request & msg, std::vector<std::string> paths);
     std::string recvReq(const int socket);
     Request parseReq(std::string req);
+    std::vector<std::string> parseStatDir(std::string dir);
 
+    std::string dir;
     addrinfo hints, *res;
     sockaddr_in client_addr;
     char client_ip[INET_ADDRSTRLEN];

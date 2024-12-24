@@ -2,6 +2,6 @@
 using namespace std;
 
 int main() {
-    TCPserver server;
-    server.startListen("./index.html");
+    TCPserver server = { "8080", "html_files/" };
+    server.startListen();
 }
