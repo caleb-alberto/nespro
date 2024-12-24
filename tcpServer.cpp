@@ -1,15 +1,15 @@
 #include "tcpServer.h"
 using namespace std;
 
-TCPserver::TCPserver(string port, string html_dir) {
+TCPserver::TCPserver(string port, string dir) {
     memset(&hints, 0, sizeof hints);
     hints.ai_family = AF_INET;
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_flags = AI_PASSIVE;
-    dir = html_dir;
 
     getaddrinfo(NULL, port.c_str(), &hints, &res); // NOLINT
 
+    endpoints = parseStatDir(dir);
     int server = startServer();
 
     if (server == 1) {
@@ -20,9 +20,8 @@ TCPserver::TCPserver(string port, string html_dir) {
         cerr << "Socket was unable to bind\n";
         exit(1);
     }
-    else {
+    else
         cout << "Server listening on Port: " << port << endl;
-    }
 }
 
 TCPserver::~TCPserver() {
@@ -31,7 +30,8 @@ TCPserver::~TCPserver() {
 
 int TCPserver::startServer() {
     sockfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
-    if (sockfd == -1) { return 1; }
+    if (sockfd == -1)
+        return 1;
     return ::bind(sockfd, res->ai_addr, res->ai_addrlen);
 }
 
@@ -58,7 +58,7 @@ void TCPserver::startListen() {
         req_str = recvReq(client_sockfd);
         Request req_msg = parseReq(req_str);
 
-        response = buildRes(req_msg, parseStatDir(dir));
+        response = buildRes(req_msg, endpoints);
         res_len = response.size();
 
         for (int total_sent = 0; total_sent < res_len; ) {
@@ -151,12 +151,15 @@ Request TCPserver::parseReq(string req) {
     return temp;
 }
 
-vector<string> TCPserver::parseStatDir(string dir) {
-    vector<string> paths;
+unordered_map<string, string> TCPserver::parseStatDir(string dir) {
+    unordered_map<string, string> paths;
 
     if (std::filesystem::exists(dir)) {
-        for (auto path : std::filesystem::directory_iterator(dir))
-            paths.push_back(path.path());
+        for (auto path : std::filesystem::directory_iterator(dir)) {
+            string cpath = path.path();
+            int path_len = cpath.find('.') - cpath.find('/');
+            paths[cpath.substr(cpath.find('/'), path_len)] = cpath;
+        }
     }
     else {
         cerr << "Directory not found\n";
@@ -166,7 +169,7 @@ vector<string> TCPserver::parseStatDir(string dir) {
     return paths;
 }
 
-string TCPserver::buildRes(const Request & msg, vector<string> paths) {
+string TCPserver::buildRes(const Request & msg, unordered_map<string, string> paths) {
     string res_msg;
     time_t t = time(nullptr);
     tm* gmt = gmtime(&t);
@@ -177,15 +180,13 @@ string TCPserver::buildRes(const Request & msg, vector<string> paths) {
     ifstream file_stream;
     bool valid_path = false;
 
-    for (auto fpath : paths) {
-        int path_len = fpath.find('.') - fpath.find('/');
-        if (fpath.substr(fpath.find('/'), path_len) == msg.path
-            || fpath.substr(fpath.find('/') + 1) == "index.html"
-            && msg.path == "/") {
-            file_stream.open(fpath);
-            valid_path = true;
-            break;
-        }
+    if (paths.count(msg.path)) {
+        file_stream.open(paths[msg.path]);
+        valid_path = true;
+    }
+    else if (msg.path == "/") {
+        file_stream.open(paths["/index"]);
+        valid_path = true;
     }
 
     string static_file;

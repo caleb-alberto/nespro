@@ -14,6 +14,7 @@
 #include <ctime>
 #include <iomanip>
 #include <sstream>
+#include <unordered_map>
 #include <vector>
 
 struct Request {
@@ -32,12 +33,12 @@ public:
 private:
     int startServer();
     void sendResponse();
-    std::string buildRes(const Request & msg, std::vector<std::string> paths);
+    std::string buildRes(const Request & msg,
+                         std::unordered_map<std::string, std::string> paths);
     std::string recvReq(const int socket);
     Request parseReq(std::string req);
-    std::vector<std::string> parseStatDir(std::string dir);
+    std::unordered_map<std::string, std::string> parseStatDir(std::string dir);
 
-    std::string dir;
     addrinfo hints, *res;
     sockaddr_in client_addr;
     char client_ip[INET_ADDRSTRLEN];
@@ -47,4 +48,5 @@ private:
     std::string response;
     std::string req_str;
     int res_len;
+    std::unordered_map<std::string, std::string> endpoints;
 };
