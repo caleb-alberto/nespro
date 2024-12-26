@@ -1,4 +1,5 @@
 #include "tcpServer.h"
+#include <filesystem>
 using namespace std;
 
 TCPserver::TCPserver(string port, string dir) {
@@ -154,11 +155,17 @@ Request TCPserver::parseReq(string req) {
 unordered_map<string, string> TCPserver::parseStatDir(string dir) {
     unordered_map<string, string> paths;
 
-    if (std::filesystem::exists(dir)) {
+    if (filesystem::exists(dir)) {
         for (auto path : std::filesystem::directory_iterator(dir)) {
             string cpath = path.path();
-            int path_len = cpath.find('.') - cpath.find('/');
-            paths[cpath.substr(cpath.find('/'), path_len)] = cpath;
+            if (filesystem::is_directory(cpath)) {
+                for (const auto& elem : parseStatDir(cpath))
+                     paths.insert(elem);
+            }
+            else {
+                int path_len = cpath.find('.') - cpath.find('/');
+                paths[cpath.substr(cpath.find('/'), path_len)] = cpath;
+            }
         }
     }
     else {
@@ -169,7 +176,8 @@ unordered_map<string, string> TCPserver::parseStatDir(string dir) {
     return paths;
 }
 
-string TCPserver::buildRes(const Request & msg, unordered_map<string, string> paths) {
+string TCPserver::buildRes(const Request & msg,
+                           unordered_map<string, string> paths) {
     string res_msg;
     time_t t = time(nullptr);
     tm* gmt = gmtime(&t);
@@ -184,8 +192,8 @@ string TCPserver::buildRes(const Request & msg, unordered_map<string, string> pa
         file_stream.open(paths[msg.path]);
         valid_path = true;
     }
-    else if (msg.path == "/") {
-        file_stream.open(paths["/index"]);
+    else if (msg.path.at(msg.path.size()-1) == '/') {
+        file_stream.open(paths[msg.path + "index"]);
         valid_path = true;
     }
 
