@@ -22,6 +22,7 @@ struct Request {
     std::string path;
     std::string version;
     std::map<std::string, std::string> header_map;
+    std::string body;
 };
 
 class TCPserver {
@@ -32,9 +33,9 @@ public:
 
 private:
     int startServer();
-    void sendResponse();
-    std::string buildRes(const Request & msg,
-                         std::unordered_map<std::string, std::string> paths);
+    void sendResponse(std::string response);
+    void forwardResponse(std::string dynamic_req);
+    std::string buildRes(const Request & msg, std::string req_path);
     std::string recvReq(const int socket);
     Request parseReq(std::string req);
     std::unordered_map<std::string, std::string> parseStatDir(std::string dir);

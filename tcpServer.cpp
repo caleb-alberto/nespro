@@ -1,5 +1,4 @@
 #include "tcpServer.h"
-#include <filesystem>
 using namespace std;
 
 TCPserver::TCPserver(string port, string dir) {
@@ -59,20 +58,16 @@ void TCPserver::startListen() {
         req_str = recvReq(client_sockfd);
         Request req_msg = parseReq(req_str);
 
-        response = buildRes(req_msg, endpoints);
-        res_len = response.size();
-
-        for (int total_sent = 0; total_sent < res_len; ) {
-            int bytes_sent = send(client_sockfd,
-                                  response.substr(total_sent).c_str(),
-                                  res_len - total_sent,
-                                  0);
-
-            if (bytes_sent == -1) {
-                cerr << "Unable to send\n";
-                exit(1);
-            }
-            total_sent += bytes_sent;
+        if (endpoints.count(req_msg.path)) {
+            response = buildRes(req_msg, endpoints[req_msg.path]);
+            sendResponse(response);
+        }
+        else if (req_msg.path.at(req_msg.path.size()-1) == '/') {
+            response = buildRes(req_msg, endpoints[req_msg.path + "index.html"]);
+            sendResponse(response);
+        }
+        else {
+            forwardResponse(req_str);
         }
 
         req_str = "";
@@ -101,11 +96,27 @@ string TCPserver::recvReq(const int socket) {
         buf[bytes_recv] = '\0';
         req_str.append(buf);
 
-        if (req_str.find("\r\n\r\n") != string::npos) {
+        if (bytes_recv < buf_size)
             break;
-        }
     }
     return req_str;
+}
+
+void TCPserver::sendResponse(string response) {
+        res_len = response.size();
+
+        for (int total_sent = 0; total_sent < res_len; ) {
+            int bytes_sent = send(client_sockfd,
+                                  response.substr(total_sent).c_str(),
+                                  res_len - total_sent,
+                                  0);
+
+            if (bytes_sent == -1) {
+                cerr << "Unable to send\n";
+                exit(1);
+            }
+            total_sent += bytes_sent;
+        }
 }
 
 Request TCPserver::parseReq(string req) {
@@ -149,6 +160,9 @@ Request TCPserver::parseReq(string req) {
         temp.header_map[header_key] = header_value;
     }
 
+    if (req.find("\r\n\r\n") != string::npos)
+        temp.body = req.substr(req.find("\r\n\r\n") + 4);
+
     return temp;
 }
 
@@ -163,8 +177,8 @@ unordered_map<string, string> TCPserver::parseStatDir(string dir) {
                      paths.insert(elem);
             }
             else {
-                int path_len = cpath.find('.') - cpath.find('/');
-                paths[cpath.substr(cpath.find('/'), path_len)] = cpath;
+                //int path_len = cpath.find('.') - cpath.find('/');
+                paths[cpath.substr(cpath.find('/'))] = cpath;
             }
         }
     }
@@ -176,8 +190,7 @@ unordered_map<string, string> TCPserver::parseStatDir(string dir) {
     return paths;
 }
 
-string TCPserver::buildRes(const Request & msg,
-                           unordered_map<string, string> paths) {
+string TCPserver::buildRes(const Request & msg, string req_path) {
     string res_msg;
     time_t t = time(nullptr);
     tm* gmt = gmtime(&t);
@@ -187,13 +200,8 @@ string TCPserver::buildRes(const Request & msg,
 
     ifstream file_stream;
     bool valid_path = false;
-
-    if (paths.count(msg.path)) {
-        file_stream.open(paths[msg.path]);
-        valid_path = true;
-    }
-    else if (msg.path.at(msg.path.size()-1) == '/') {
-        file_stream.open(paths[msg.path + "index"]);
+    if (filesystem::exists(req_path)) {
+        file_stream.open(req_path);
         valid_path = true;
     }
 
@@ -237,30 +245,6 @@ string TCPserver::buildRes(const Request & msg,
                 "Connection: close\r\n"
                 "\r\n";
     }
-
-    else if (msg.path == "/favicon.ico") {
-        if (msg.method == "GET")
-            res_msg = "HTTP/1.1 404 Not Found\r\n"
-                "Content-Type: text/html\r\n"
-                "Date: " + time + "\r\n"
-                "Content-Length: 108\r\n"
-                "Connection: close\r\n"
-                "\r\n"
-                "<html><body>"
-                "<h1>404 Not Found</h1>"
-                "<p>"
-                "Sorry, we don't have a favicon for you at the moment."
-                "</p>"
-                "</body></html>";
-        else if (msg.method == "HEAD")
-            res_msg = "HTTP/1.1 404 Not Found\r\n"
-                "Content-Type: text/html\r\n"
-                "Date: " + time + "\r\n"
-                "Content-Length: 108\r\n"
-                "Connection: close\r\n"
-                "\r\n";
-    }
-
     else {
         if (msg.method == "GET")
             res_msg = "HTTP/1.1 404 Not Found\r\n"
@@ -275,7 +259,7 @@ string TCPserver::buildRes(const Request & msg,
                 "Invalid page requested"
                 "</p>"
                 "</body></html>";
-        else if (msg.method == "GET")
+        else if (msg.method == "HEAD")
             res_msg = "HTTP/1.1 404 Not Found\r\n"
                 "Content-Type: text/html\r\n"
                 "Date: " + time + "\r\n"
@@ -297,4 +281,7 @@ string TCPserver::buildRes(const Request & msg,
                 "</body></html>";
     }
     return res_msg;
+}
+
+void TCPserver::forwardResponse(string dynamic_req) {
 }
