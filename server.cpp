@@ -3,5 +3,5 @@ using namespace std;
 
 int main() {
     TCPserver server("8080", "html_files/");
-    server.startListen("https://google.com/");
+    server.startListen("http://localhost:3000");
 }
