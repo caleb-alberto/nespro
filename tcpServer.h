@@ -1,3 +1,4 @@
+#include <curl/curl.h>
 #include <fstream>
 #include <filesystem>
 #include <map>
@@ -29,12 +30,12 @@ class TCPserver {
 public:
     TCPserver(std::string port = "8080", std::string html_dir = "");
     ~TCPserver();
-    void startListen();
+    void startListen(std::string backend_url);
 
 private:
     int startServer();
     void sendResponse(std::string response);
-    void forwardResponse(std::string dynamic_req);
+    std::string forwardResponse(Request dynamic_req, std::string backend_url);
     std::string buildRes(const Request & msg, std::string req_path);
     std::string recvReq(const int socket);
     Request parseReq(std::string req);

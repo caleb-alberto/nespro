@@ -8,6 +8,7 @@ TCPserver::TCPserver(string port, string dir) {
     hints.ai_flags = AI_PASSIVE;
 
     getaddrinfo(NULL, port.c_str(), &hints, &res); // NOLINT
+    curl_global_init(CURL_GLOBAL_ALL);
 
     endpoints = parseStatDir(dir);
     int server = startServer();
@@ -26,6 +27,7 @@ TCPserver::TCPserver(string port, string dir) {
 
 TCPserver::~TCPserver() {
     freeaddrinfo(res);
+    curl_global_cleanup();
 }
 
 int TCPserver::startServer() {
@@ -35,7 +37,7 @@ int TCPserver::startServer() {
     return ::bind(sockfd, res->ai_addr, res->ai_addrlen);
 }
 
-void TCPserver::startListen() {
+void TCPserver::startListen(string backend_url) {
     if (listen(sockfd, 20) == -1) {
         cerr << "Unable to listen\n";
         exit(1);
@@ -63,11 +65,12 @@ void TCPserver::startListen() {
             sendResponse(response);
         }
         else if (req_msg.path.at(req_msg.path.size()-1) == '/') {
-            response = buildRes(req_msg, endpoints[req_msg.path + "index.html"]);
+            response = buildRes(req_msg,
+                                endpoints[req_msg.path + "index.html"]);
             sendResponse(response);
         }
         else {
-            forwardResponse(req_str);
+            forwardResponse(req_msg, backend_url);
         }
 
         req_str = "";
@@ -177,7 +180,6 @@ unordered_map<string, string> TCPserver::parseStatDir(string dir) {
                      paths.insert(elem);
             }
             else {
-                //int path_len = cpath.find('.') - cpath.find('/');
                 paths[cpath.substr(cpath.find('/'))] = cpath;
             }
         }
@@ -283,5 +285,30 @@ string TCPserver::buildRes(const Request & msg, string req_path) {
     return res_msg;
 }
 
-void TCPserver::forwardResponse(string dynamic_req) {
+size_t WriteCallback(char* ptr, size_t size, size_t nmemb, void* userdata) {
+    std::string* response = static_cast<std::string*>(userdata);
+    response->append(ptr, size * nmemb); // Append data to the string
+    return size * nmemb; // Tell libcurl we handled all the data
+}
+
+string TCPserver::forwardResponse(Request dynamic_req, string backend_url) {
+    CURL *handle = curl_easy_init();
+
+    if (dynamic_req.method == "POST") {
+        curl_easy_setopt(handle, CURLOPT_POST, 1L);
+        curl_easy_setopt(handle, CURLOPT_POSTFIELDS, dynamic_req.body.c_str());
+        curl_easy_setopt(handle, CURLOPT_POSTFIELDSIZE, dynamic_req.body.size());
+    }
+    if (dynamic_req.method != "GET") {
+        curl_easy_setopt(handle, CURLOPT_CUSTOMREQUEST, dynamic_req.method.c_str());
+    }
+
+    struct curl_slist* headers = nullptr;
+    for (const auto& [key, value] : dynamic_req.header_map) {
+        std::string header = key + ": " + value;
+        headers = curl_slist_append(headers, header.c_str());
+    }
+    curl_easy_setopt(handle, CURLOPT_HTTPHEADER, headers);
+
+    return "";
 }
