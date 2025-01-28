@@ -1,4 +1,5 @@
 #include <curl/curl.h>
+#include <curl/easy.h>
 #include <fstream>
 #include <filesystem>
 #include <map>

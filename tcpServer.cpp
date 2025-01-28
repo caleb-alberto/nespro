@@ -70,7 +70,7 @@ void TCPserver::startListen(string backend_url) {
             sendResponse(response);
         }
         else {
-            forwardResponse(req_msg, backend_url);
+            sendResponse(forwardResponse(req_msg, backend_url));
         }
 
         req_str = "";
@@ -285,30 +285,45 @@ string TCPserver::buildRes(const Request & msg, string req_path) {
     return res_msg;
 }
 
-size_t WriteCallback(char* ptr, size_t size, size_t nmemb, void* userdata) {
-    std::string* response = static_cast<std::string*>(userdata);
-    response->append(ptr, size * nmemb); // Append data to the string
-    return size * nmemb; // Tell libcurl we handled all the data
+size_t write_callback(char *ptr, size_t size, size_t nmemb, void *userdata) {
+    size_t real_size = size * nmemb;
+    std::string *response = static_cast<std::string*>(userdata);
+    response->append(ptr, real_size);
+
+    return real_size;
 }
 
 string TCPserver::forwardResponse(Request dynamic_req, string backend_url) {
-    CURL *handle = curl_easy_init();
+    CURL* handle = curl_easy_init();
+    string response;
+    string full_url = backend_url + dynamic_req.path;
 
     if (dynamic_req.method == "POST") {
         curl_easy_setopt(handle, CURLOPT_POST, 1L);
         curl_easy_setopt(handle, CURLOPT_POSTFIELDS, dynamic_req.body.c_str());
-        curl_easy_setopt(handle, CURLOPT_POSTFIELDSIZE, dynamic_req.body.size());
+        curl_easy_setopt(handle,
+                         CURLOPT_POSTFIELDSIZE,
+                         dynamic_req.body.size());
     }
     if (dynamic_req.method != "GET") {
-        curl_easy_setopt(handle, CURLOPT_CUSTOMREQUEST, dynamic_req.method.c_str());
+        curl_easy_setopt(handle,
+                         CURLOPT_CUSTOMREQUEST,
+                         dynamic_req.method.c_str());
     }
 
     struct curl_slist* headers = nullptr;
     for (const auto& [key, value] : dynamic_req.header_map) {
-        std::string header = key + ": " + value;
+        string header = key + ": " + value;
         headers = curl_slist_append(headers, header.c_str());
     }
-    curl_easy_setopt(handle, CURLOPT_HTTPHEADER, headers);
 
-    return "";
+    curl_easy_setopt(handle, CURLOPT_URL, full_url.c_str());
+    curl_easy_setopt(handle, CURLOPT_HTTPHEADER, headers);
+    curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, write_callback);
+    curl_easy_setopt(handle, CURLOPT_WRITEDATA, &response);
+
+    curl_easy_perform(handle);
+    curl_easy_cleanup(handle);
+
+    return response;
 }
