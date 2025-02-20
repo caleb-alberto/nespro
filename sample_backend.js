@@ -17,8 +17,7 @@ const server = http.createServer((req, res) => {
     const contentLength = Buffer.byteLength(res_body);
 
   if (req.url === '/backend') {
-      res.writeHead(200, { 'Content-Type': 'text/html',
-			   'Content-Length': contentLength
+      res.writeHead(200, { 'Content-Type': 'text/html'
 			 });
 
     res.end(res_body);

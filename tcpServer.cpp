@@ -60,7 +60,10 @@ void TCPserver::startListen(string backend_url) {
     req_str = recvReq(client_sockfd);
     Request req_msg = parseReq(req_str);
 
-    if (endpoints.count(req_msg.path)) {
+    if (!req_msg.header_map.count("Host"))
+      sendResponse("HTTP 1.1 requests must include the Host: header.");
+
+    else if (endpoints.count(req_msg.path)) {
       response = buildRes(req_msg, endpoints[req_msg.path]);
       sendResponse(response);
     }
@@ -71,7 +74,6 @@ void TCPserver::startListen(string backend_url) {
       sendResponse(response);
     }
     else {
-      // todo implement check for host header on dynamic requests
       sendResponse(forwardResponse(req_msg, backend_url));
     }
 
@@ -108,6 +110,18 @@ string TCPserver::recvReq(const int socket) {
 }
 
 void TCPserver::sendResponse(string response) {
+  if (response.find("Transfer-Encoding: chunked") != string::npos) {
+      int start = response.find("\r\n\r\n") + 4;
+      int end = response.size();
+
+      stringstream stream;
+      stream << hex << end - start;
+      string chunked_size = stream.str() + "\r\n";
+      string ending = "\r\n0\r\n\r\n";
+
+      response.insert(start, chunked_size);
+      response.insert(response.size(), ending);
+  }
   res_len = response.size();
 
   for (int total_sent = 0; total_sent < res_len; ) {
@@ -204,10 +218,7 @@ string TCPserver::buildRes(const Request & msg, string req_path) {
 
   ifstream file_stream;
   bool valid_path = false;
-  if (filesystem::exists(req_path)) {
-    file_stream.open(req_path);
-    valid_path = true;
-  }
+  file_stream.open(req_path);
 
   string static_file;
   string line;
@@ -216,65 +227,26 @@ string TCPserver::buildRes(const Request & msg, string req_path) {
     static_file += line;
   }
 
-  if (!msg.header_map.count("Host"))
-    res_msg = "HTTP 1.1 requests must include the Host: header.";
+  if (msg.method == "GET")
+    res_msg = "HTTP/1.1 200 OK\r\n"
+      "Content-Type: text/html\r\n"
+      "Date: " + time + "\r\n"
+      "Content-Length: "
+      + to_string(static_file.size()) +
+      "\r\n"
+      "Connection: close\r\n"
+      "\r\n"
+      + static_file;
+  else if (msg.method == "HEAD")
+    res_msg = "HTTP/1.1 200 OK\r\n"
+      "Content-Type: text/html\r\n"
+      "Date: " + time + "\r\n"
+      "Content-Length: "
+      + to_string(static_file.size()) +
+      "\r\n"
+      "Connection: close\r\n"
+      "\r\n";
 
-  else if (valid_path) {
-    if (msg.method == "GET")
-      res_msg = "HTTP/1.1 200 OK\r\n"
-	"Content-Type: text/html\r\n"
-	"Date: " + time + "\r\n"
-	"Content-Length: "
-	+ to_string(static_file.size()) +
-	"\r\n"
-	"Connection: close\r\n"
-	"\r\n"
-	+ static_file;
-    else if (msg.method == "HEAD")
-      res_msg = "HTTP/1.1 200 OK\r\n"
-	"Content-Type: text/html\r\n"
-	"Date: " + time + "\r\n"
-	"Content-Length: "
-	+ to_string(static_file.size()) +
-	"\r\n"
-	"Connection: close\r\n"
-	"\r\n";
-  }
-  else {
-    if (msg.method == "GET")
-      res_msg = "HTTP/1.1 404 Not Found\r\n"
-	"Content-Type: text/html\r\n"
-	"Date: " + time + "\r\n"
-	"Content-Length: 77\r\n"
-	"Connection: close\r\n"
-	"\r\n"
-	"<html><body>"
-	"<h1>404 Not Found</h1>"
-	"<p>"
-	"Invalid page requested"
-	"</p>"
-	"</body></html>";
-    else if (msg.method == "HEAD")
-      res_msg = "HTTP/1.1 404 Not Found\r\n"
-	"Content-Type: text/html\r\n"
-	"Date: " + time + "\r\n"
-	"Content-Length: 77\r\n"
-	"Connection: close\r\n"
-	"\r\n";
-    else
-      res_msg = "HTTP/1.1 400 Bad Request\r\n"
-	"Content-Type: text/html\r\n"
-	"Date: " + time + "\r\n"
-	"Content-Length: 70\r\n"
-	"Connection: close\r\n"
-	"\r\n"
-	"<html><body>"
-	"<h1>400 Not Found</h1>"
-	"<p>"
-	"Invalid request"
-	"</p>"
-	"</body></html>";
-  }
   return res_msg;
 }
 

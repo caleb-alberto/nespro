@@ -1,3 +1,4 @@
+#include <bits/stdc++.h>
 #include <curl/curl.h>
 #include <curl/easy.h>
 #include <fstream>
@@ -12,7 +13,6 @@
 #include <iostream>
 #include <netdb.h>
 #include <unistd.h>
-#include <cstdio>
 #include <ctime>
 #include <iomanip>
 #include <sstream>
