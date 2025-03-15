@@ -1,4 +1,3 @@
-#include <bits/stdc++.h>
 #include <curl/curl.h>
 #include <curl/easy.h>
 #include <fstream>
