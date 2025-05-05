@@ -1,5 +1,3 @@
-// fix 80px extending on buffer
-
 #include "tcp_server.h"
 using namespace std;
 
@@ -48,7 +46,9 @@ void TCPserver::startListen(string backend_url) {
 
         while(true) {
                 addr_size = sizeof(client_addr);
-                client_sockfd = accept(sockfd, (sockaddr *)&client_addr, &addr_size);
+                client_sockfd = accept(sockfd,
+                                       (sockaddr *)&client_addr,
+                                       &addr_size);
 
                 if (client_sockfd == -1) {
                         cerr << "Unable to accept\n";
@@ -56,7 +56,10 @@ void TCPserver::startListen(string backend_url) {
                 }
 
                 sockaddr_in* client_in = (sockaddr_in*)&client_addr;
-                inet_ntop(AF_INET, &client_in->sin_addr, client_ip, INET_ADDRSTRLEN);
+                inet_ntop(AF_INET,
+                          &client_in->sin_addr,
+                          client_ip,
+                          INET_ADDRSTRLEN);
                 cout << "Client connected from IP: " << client_ip << endl;
 
                 req_str = recvReq(client_sockfd);
@@ -72,7 +75,8 @@ void TCPserver::startListen(string backend_url) {
                 else if (req_msg.path.at(req_msg.path.size()-1) == '/'
                          && endpoints.count(req_msg.path + "index.html")) {
                         response = buildRes(req_msg,
-                                            endpoints[req_msg.path + "index.html"]);
+                                            endpoints[req_msg.path +
+                                                      "index.html"]);
                         sendResponse(response);
                 }
                 else {
@@ -163,7 +167,9 @@ Request TCPserver::parseReq(string req) {
                 try {
                         int first = temp.path.find('/');
                         int second = temp.path.find('/', first+1);
-                        temp.path = temp.path.substr(temp.path.find('/', second+1));
+                        temp.path = temp.path.substr(
+                                                temp.path.find('/', second+1)
+                                                     );
                 }
                 catch (out_of_range) {} // just ignore it
         }
@@ -224,10 +230,10 @@ string TCPserver::buildRes(const Request & msg, string req_path) {
 
         size_t ext_loc = req_path.find('.') + 1;
         string type = req_path.substr(ext_loc);
-    
+
         if (type == "js")
                 type = "javascript";
-    
+
         string static_file;
         string line;
 
@@ -275,8 +281,12 @@ string TCPserver::forwardResponse(Request dynamic_req, string backend_url) {
 
         if (dynamic_req.method == "POST") {
                 curl_easy_setopt(handle, CURLOPT_POST, 1);
-                curl_easy_setopt(handle, CURLOPT_POSTFIELDS, dynamic_req.body.c_str());
-                curl_easy_setopt(handle, CURLOPT_POSTFIELDSIZE, (long)dynamic_req.body.size());
+                curl_easy_setopt(handle,
+                                 CURLOPT_POSTFIELDS,
+                                 dynamic_req.body.c_str());
+                curl_easy_setopt(handle,
+                                 CURLOPT_POSTFIELDSIZE,
+                                 (long)dynamic_req.body.size());
         }
         else if (dynamic_req.method == "GET") {
                 curl_easy_setopt(handle, CURLOPT_HTTPGET, 1);
@@ -284,7 +294,8 @@ string TCPserver::forwardResponse(Request dynamic_req, string backend_url) {
 
         struct curl_slist *headers = nullptr;
         for (const auto& item: dynamic_req.header_map)
-                curl_slist_append(headers, (item.first + ": " + item.second).c_str());
+                curl_slist_append(headers,
+                                  (item.first + ": " + item.second).c_str());
 
         curl_easy_setopt(handle, CURLOPT_HTTPHEADER, headers);
 
