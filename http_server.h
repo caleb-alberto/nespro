@@ -25,38 +25,38 @@
 #include <vector>
 
 struct Request {
-        std::string method;
-        std::string path;
-        std::string version;
-        std::map<std::string, std::string> header_map;
-        std::string body;
+    std::string method;
+    std::string path;
+    std::string version;
+    std::map<std::string, std::string> header_map;
+    std::string body;
 };
 
 class HTTPserver {
 public:
-        HTTPserver(std::string port = "8080", std::string html_dir = "");
-        ~HTTPserver();
-        void startListen(std::string backend_url);
+    HTTPserver(std::string port = "8080", std::string html_dir = "");
+    ~HTTPserver();
+    void startListen(std::string backend_url);
 
 protected:
-        int startServer();
-        void sendResponse(std::string response);
-        std::string forwardResponse(Request dynamic_req, std::string backend_url);
-        std::string buildRes(const Request & msg, std::string req_path);
-        std::string recvReq(const int socket);
-        Request parseReq(std::string req);
-        std::unordered_map<std::string, std::string> parseStatDir(std::string dir);
+    int startServer();
+    void sendResponse(std::string response);
+    std::string forwardResponse(Request dynamic_req, std::string backend_url);
+    std::string buildRes(const Request & msg, std::string req_path);
+    std::string recvReq(const int socket);
+    Request parseReq(std::string req);
+    std::unordered_map<std::string, std::string> parseStatDir(std::string dir);
 
-        addrinfo hints, *res;
-        sockaddr_in client_addr;
-        char client_ip[INET_ADDRSTRLEN];
-        socklen_t addr_size;
-        int sockfd;
-        int client_sockfd;
-        std::string response;
-        std::string req_str;
-        int res_len;
-        std::unordered_map<std::string, std::string> endpoints;
+    addrinfo hints, *res;
+    sockaddr_in client_addr;
+    char client_ip[INET_ADDRSTRLEN];
+    socklen_t addr_size;
+    int sockfd;
+    int client_sockfd;
+    std::string response;
+    std::string req_str;
+    int res_len;
+    std::unordered_map<std::string, std::string> endpoints;
 };
 
 #endif
