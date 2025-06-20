@@ -53,60 +53,19 @@ void TCPserver::startListen(string backend_url) {
             exit(1);
         }
 
-<<<<<<< HEAD
-        while(true) {
-                addr_size = sizeof(client_addr);
-                client_sockfd = accept(sockfd,
-                                       (sockaddr *)&client_addr,
-                                       &addr_size);
-=======
         sockaddr_in* client_in = (sockaddr_in*)&client_addr;
         inet_ntop(AF_INET, &client_in->sin_addr, client_ip, INET_ADDRSTRLEN);
         cout << "Client connected from IP: " << client_ip << endl;
->>>>>>> temp-branch
 
         req_str = recvReq(client_sockfd);
         Request req_msg = parseReq(req_str);
 
-<<<<<<< HEAD
-                sockaddr_in* client_in = (sockaddr_in*)&client_addr;
-                inet_ntop(AF_INET,
-                          &client_in->sin_addr,
-                          client_ip,
-                          INET_ADDRSTRLEN);
-                cout << "Client connected from IP: " << client_ip << endl;
 
-                req_str = recvReq(client_sockfd);
-                Request req_msg = parseReq(req_str);
-
-                if (!req_msg.header_map.count("Host"))
-                        sendResponse("HTTP 1.1 requests must include the Host: header.");
-
-                else if (endpoints.count(req_msg.path)) {
-                        response = buildRes(req_msg, endpoints[req_msg.path]);
-                        sendResponse(response);
-                }
-                else if (req_msg.path.at(req_msg.path.size()-1) == '/'
-                         && endpoints.count(req_msg.path + "index.html")) {
-                        response = buildRes(req_msg,
-                                            endpoints[req_msg.path +
-                                                      "index.html"]);
-                        sendResponse(response);
-                }
-                else {
-                        sendResponse(forwardResponse(req_msg, backend_url));
-                }
-
-                req_str = "";
-                close(client_sockfd);
-=======
         if (!req_msg.header_map.count("Host"))
             sendResponse("HTTP 1.1 requests must include the Host: header.");
-
         else if (endpoints.count(req_msg.path)) {
             response = buildRes(req_msg, endpoints[req_msg.path]);
             sendResponse(response);
->>>>>>> temp-branch
         }
         else if (req_msg.path.at(req_msg.path.size()-1) == '/'
                  && endpoints.count(req_msg.path + "index.html")) {
@@ -180,54 +139,7 @@ void TCPserver::sendResponse(string response) {
 }
 
 Request TCPserver::parseReq(string req) {
-<<<<<<< HEAD
-        Request temp;
-
-        if (req.size() < 1)
-                return temp;
-
-        istringstream init_stream(req);
-        string token;
-        vector<string> tokens;
-
-        while (getline(init_stream, token, '\n'))
-                tokens.push_back(token);
-
-        istringstream startline_stream(tokens[0]);
-        getline(startline_stream, temp.method, ' ');
-        getline(startline_stream, temp.path, ' ');
-        getline(startline_stream, temp.version, '\r');
-        temp.version.erase(temp.version.find_last_not_of(" \t") + 1);
-
-        if (temp.path.at(0) != '/') {
-                try {
-                        int first = temp.path.find('/');
-                        int second = temp.path.find('/', first+1);
-                        temp.path = temp.path.substr(
-                                                temp.path.find('/', second+1)
-                                                     );
-                }
-                catch (out_of_range) {} // just ignore it
-        }
-
-        for (int i = 1; i != tokens.size(); i++) {
-                istringstream header_stream(tokens[i]);
-                string header_key;
-                string header_value;
-
-                getline(header_stream, header_key, ':');
-                getline(header_stream, header_value, '\r');
-                header_value.erase(0, header_value.find_first_not_of(" \t"));
-                header_value.erase(header_value.find_last_not_of(" \t") + 1);
-
-                temp.header_map[header_key] = header_value;
-        }
-
-        if (req.find("\r\n\r\n") != string::npos)
-                temp.body = req.substr(req.find("\r\n\r\n") + 4);
-=======
     Request temp;
->>>>>>> temp-branch
 
     if (req.size() < 1)
         return temp;
@@ -308,19 +220,8 @@ string TCPserver::buildRes(const Request & msg, string req_path) {
     bool valid_path = false;
     file_stream.open(req_path);
 
-<<<<<<< HEAD
-        size_t ext_loc = req_path.find('.') + 1;
-        string type = req_path.substr(ext_loc);
-
-        if (type == "js")
-                type = "javascript";
-
-        string static_file;
-        string line;
-=======
     size_t ext_loc = req_path.find('.') + 1;
     string type = req_path.substr(ext_loc);
->>>>>>> temp-branch
 
     if (type == "js")
         type = "javascript";

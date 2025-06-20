@@ -1,4 +1,3 @@
-// fix 80px indenting on buffer
 // set up inheritence for HTTPS_server class
 
 #ifndef HTTP_SERVER
