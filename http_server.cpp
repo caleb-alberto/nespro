@@ -1,7 +1,7 @@
-#include "tcp_server.h"
+#include "http_server.h"
 using namespace std;
 
-TCPserver::TCPserver(string port, string dir) {
+HTTPserver::HTTPserver(string port, string dir) {
     memset(&hints, 0, sizeof hints);
     hints.ai_family = AF_INET;
     hints.ai_socktype = SOCK_STREAM;
@@ -25,19 +25,19 @@ TCPserver::TCPserver(string port, string dir) {
         cout << "Server listening on Port: " << port << endl;
 }
 
-TCPserver::~TCPserver() {
+HTTPserver::~HTTPserver() {
     freeaddrinfo(res);
     curl_global_cleanup();
 }
 
-int TCPserver::startServer() {
+int HTTPserver::startServer() {
     sockfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
     if (sockfd == -1)
         return 1;
     return ::bind(sockfd, res->ai_addr, res->ai_addrlen);
 }
 
-void TCPserver::startListen(string backend_url) {
+void HTTPserver::startListen(string backend_url) {
     if (listen(sockfd, 20) == -1) {
         cerr << "Unable to listen\n";
         exit(1);
@@ -82,7 +82,7 @@ void TCPserver::startListen(string backend_url) {
     }
 }
 
-string TCPserver::recvReq(const int socket) {
+string HTTPserver::recvReq(const int socket) {
     const int buf_size = 1024;
     char buf[buf_size];
 
@@ -109,7 +109,7 @@ string TCPserver::recvReq(const int socket) {
     return req_str;
 }
 
-void TCPserver::sendResponse(string response) {
+void HTTPserver::sendResponse(string response) {
     if (response.find("Transfer-Encoding: chunked") != string::npos) {
         int start = response.find("\r\n\r\n") + 4;
         int end = response.size();
@@ -138,7 +138,7 @@ void TCPserver::sendResponse(string response) {
     }
 }
 
-Request TCPserver::parseReq(string req) {
+Request HTTPserver::parseReq(string req) {
     Request temp;
 
     if (req.size() < 1)
@@ -185,7 +185,7 @@ Request TCPserver::parseReq(string req) {
     return temp;
 }
 
-unordered_map<string, string> TCPserver::parseStatDir(string dir) {
+unordered_map<string, string> HTTPserver::parseStatDir(string dir) {
     unordered_map<string, string> paths;
 
     if (filesystem::exists(dir)) {
@@ -208,7 +208,7 @@ unordered_map<string, string> TCPserver::parseStatDir(string dir) {
     return paths;
 }
 
-string TCPserver::buildRes(const Request & msg, string req_path) {
+string HTTPserver::buildRes(const Request & msg, string req_path) {
     string res_msg;
     time_t t = time(nullptr);
     tm* gmt = gmtime(&t);
@@ -264,7 +264,7 @@ size_t write_callback(char *ptr, size_t size, size_t nmemb, void *userdata) {
     return real_size;
 }
 
-string TCPserver::forwardResponse(Request dynamic_req, string backend_url) {
+string HTTPserver::forwardResponse(Request dynamic_req, string backend_url) {
     CURL* handle = curl_easy_init();
     string response;
     string full_url = backend_url + dynamic_req.path;
