@@ -217,7 +217,6 @@ string HTTPserver::buildRes(const Request & msg, string req_path) {
     string time = oss.str();
 
     ifstream file_stream;
-    bool valid_path = false;
     file_stream.open(req_path);
 
     size_t ext_loc = req_path.find('.') + 1;
