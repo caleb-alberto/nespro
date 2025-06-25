@@ -33,12 +33,14 @@ struct Request {
 
 class HTTPserver {
 public:
-    HTTPserver(std::string port = "8080", std::string html_dir = "");
+    HTTPserver(std::string port = "8080", const std::string html_dir = "");
     ~HTTPserver();
     void startListen(std::string backend_url);
 
 protected:
     int startServer();
+    int acceptConnection(const int socket);
+    void closeConnection(const int client);
     void sendResponse(std::string response);
     std::string forwardResponse(Request dynamic_req, std::string backend_url);
     std::string buildRes(const Request & msg, std::string req_path);

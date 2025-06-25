@@ -35,6 +35,16 @@ int HTTPserver::startServer() {
     if (sockfd == -1)
         return 1;
     return ::bind(sockfd, res->ai_addr, res->ai_addrlen);
+
+}
+
+int HTTPserver::acceptConnection(const int socket) {
+    addr_size = sizeof(client_addr);
+    return accept(sockfd, (sockaddr *)&client_addr, &addr_size);
+}
+
+void HTTPserver::closeConnection(const int client) {
+    close(client);
 }
 
 void HTTPserver::startListen(string backend_url) {
@@ -45,8 +55,7 @@ void HTTPserver::startListen(string backend_url) {
     cout << "Socket is listening\n";
 
     while(true) {
-        addr_size = sizeof(client_addr);
-        client_sockfd = accept(sockfd, (sockaddr *)&client_addr, &addr_size);
+        client_sockfd = acceptConnection(sockfd);
 
         if (client_sockfd == -1) {
             cerr << "Unable to accept\n";
@@ -62,7 +71,7 @@ void HTTPserver::startListen(string backend_url) {
 
 
         if (!req_msg.header_map.count("Host"))
-            sendResponse("HTTP 1.1 requests must include the Host: header.");
+            sendResponse("HTTP 1.1 requests must include the 'Host:' header.");
         else if (endpoints.count(req_msg.path)) {
             response = buildRes(req_msg, endpoints[req_msg.path]);
             sendResponse(response);
@@ -73,12 +82,11 @@ void HTTPserver::startListen(string backend_url) {
                                 endpoints[req_msg.path + "index.html"]);
             sendResponse(response);
         }
-        else {
+        else
             sendResponse(forwardResponse(req_msg, backend_url));
-        }
 
         req_str = "";
-        close(client_sockfd);
+        closeConnection(client_sockfd);
     }
 }
 

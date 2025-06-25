@@ -2,9 +2,9 @@ NESPRO
 ======
 
 ## code checklist
-- [ ] create makefile for http and https compile
-  - use `-Wall -Wextra -O2 -std=c++17` with `clang++`
-  - for flags: `-lcurl -lssl -lcrypto`
+- [x] create makefile for http and https compile
+  - ensure proper flags: `-lcurl -lssl -lcrypto` (`-lssl` & `-lcrypto` for HTTPS only)
+- [ ] configure JSON nginx like config structure for server
 - [ ] write description README
   - describe project purpose (HTTP/HTTPS file server)
   - how to compile and run
@@ -16,11 +16,7 @@ NESPRO
   - `SSL_accept()` (performs the handshake)
   - `SSL_read()` / `SSL_write()` instead of `read()` / `write()`
 
-  we create bind and accept the socket with POSIX but then hand off to openSSL
-  for encrypted TLS
-- [ ] make server.cpp use cmd line args for port and domain/ip
-  - `--port <number>` (defaults to 80)
-  - `--domain` or `--ip`
+  we create bind and accept the socket with POSIX but then hand off to openSSL for encrypted TLS
 
 ## deployment checklist
 - [ ] domain name -> ip
