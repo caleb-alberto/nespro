@@ -43,7 +43,7 @@ protected:
     void closeConnection(const int client);
     void sendResponse(std::string response);
     std::string forwardResponse(Request dynamic_req, std::string backend_url);
-    std::string buildRes(const Request & msg, std::string req_path);
+    void buildRes(const Request & msg, std::string req_path);
     std::string recvReq(const int socket);
     Request parseReq(std::string req);
     std::unordered_map<std::string, std::string> parseStatDir(std::string dir);

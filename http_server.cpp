@@ -72,16 +72,11 @@ void HTTPserver::startListen(string backend_url) {
 
         if (!req_msg.header_map.count("Host"))
             sendResponse("HTTP 1.1 requests must include the 'Host:' header.");
-        else if (endpoints.count(req_msg.path)) {
-            response = buildRes(req_msg, endpoints[req_msg.path]);
-            sendResponse(response);
-        }
+        else if (endpoints.count(req_msg.path))
+            buildRes(req_msg, endpoints[req_msg.path]);
         else if (req_msg.path.at(req_msg.path.size()-1) == '/'
-                 && endpoints.count(req_msg.path + "index.html")) {
-            response = buildRes(req_msg,
-                                endpoints[req_msg.path + "index.html"]);
-            sendResponse(response);
-        }
+                 && endpoints.count(req_msg.path + "index.html"))
+            buildRes(req_msg, endpoints[req_msg.path + "index.html"]);
         else
             sendResponse(forwardResponse(req_msg, backend_url));
 
@@ -216,51 +211,54 @@ unordered_map<string, string> HTTPserver::parseStatDir(string dir) {
     return paths;
 }
 
-string HTTPserver::buildRes(const Request & msg, string req_path) {
+void HTTPserver::buildRes(const Request & msg, string req_path) {
     string res_msg;
+    string form;
     time_t t = time(nullptr);
     tm* gmt = gmtime(&t);
     ostringstream oss;
     oss << put_time(gmt, "%a, %d %b %Y %H:%M:%S GMT");
     string time = oss.str();
 
-    ifstream file_stream;
-    file_stream.open(req_path);
-
     size_t ext_loc = req_path.find('.') + 1;
     string type = req_path.substr(ext_loc);
 
+    if (type == "png" || type == "jpeg" || type == "jpg" || type == "ico")
+        form = "image/";
+    else
+        form = "text/";
+
     if (type == "js")
         type = "javascript";
+    if (type == "ico")
+        type = "x-icon";
 
-    string static_file;
-    string line;
+    ifstream f(req_path.c_str(), ios::in|ios::binary|ios::ate);
+    streampos file_size = f.tellg();
+    char* static_file = new char[file_size];
+    f.seekg(0, ios::beg);
+    f.read(static_file, file_size);
+    f.close();
 
-    while (getline(file_stream, line)) {
-        static_file += line;
+    res_msg = "HTTP/1.1 200 OK\r\n"
+        "Content-Type: " + form + type + "\r\n"
+        "Date: " + time + "\r\n"
+        "Content-Length: "
+        + to_string(file_size) +
+        "\r\n"
+        "Connection: close\r\n"
+        "\r\n";
+
+    if (form == "text/") {
+        if (msg.method == "GET")
+            res_msg += string(static_file);
+
+        sendResponse(string(res_msg));
     }
-
-    if (msg.method == "GET")
-        res_msg = "HTTP/1.1 200 OK\r\n"
-            "Content-Type: text/" + type + "\r\n"
-            "Date: " + time + "\r\n"
-            "Content-Length: "
-            + to_string(static_file.size()) +
-            "\r\n"
-            "Connection: close\r\n"
-            "\r\n"
-            + static_file;
-    else if (msg.method == "HEAD")
-        res_msg = "HTTP/1.1 200 OK\r\n"
-            "Content-Type: text/" + type + "\r\n"
-            "Date: " + time + "\r\n"
-            "Content-Length: "
-            + to_string(static_file.size()) +
-            "\r\n"
-            "Connection: close\r\n"
-            "\r\n";
-
-    return res_msg;
+    else {
+        send(client_sockfd, res_msg.c_str(), res_msg.length(), 0);
+        send(client_sockfd, static_file, file_size, 0);
+    }
 }
 
 size_t write_callback(char *ptr, size_t size, size_t nmemb, void *userdata) {

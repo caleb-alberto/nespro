@@ -4,6 +4,7 @@ NESPRO
 ## code checklist
 - [x] create makefile for http and https compile
   - ensure proper flags: `-lcurl -lssl -lcrypto` (`-lssl` & `-lcrypto` for HTTPS only)
+- [x] configure sending images
 - [ ] configure JSON nginx like config structure for server
 - [ ] write description README
   - describe project purpose (HTTP/HTTPS file server)
