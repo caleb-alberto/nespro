@@ -66,7 +66,7 @@ void HTTPserver::startListen(string backend_url) {
         inet_ntop(AF_INET, &client_in->sin_addr, client_ip, INET_ADDRSTRLEN);
         cout << "Client connected from IP: " << client_ip << endl;
 
-        req_str = recvReq(client_sockfd);
+        req_str = recvReq();
         Request req_msg = parseReq(req_str);
 
 
@@ -85,14 +85,18 @@ void HTTPserver::startListen(string backend_url) {
     }
 }
 
-string HTTPserver::recvReq(const int socket) {
+ssize_t HTTPserver::recvClient(char* buf, size_t size) {
+    return recv(client_sockfd, buf, size, 0);
+}
+
+string HTTPserver::recvReq() {
     const int buf_size = 1024;
     char buf[buf_size];
 
-    int bytes_recv;
+    ssize_t bytes_recv;
 
     while (true) {
-        bytes_recv = recv(socket, buf, buf_size, 0);
+        bytes_recv = recvClient(buf, buf_size);
 
         if (bytes_recv == -1) {
             cerr << "Unable to recieve message\n";
@@ -112,6 +116,10 @@ string HTTPserver::recvReq(const int socket) {
     return req_str;
 }
 
+ssize_t HTTPserver::writeClient(const char* buf, const size_t size) {
+    return send(client_sockfd, buf, size, 0);
+}
+
 void HTTPserver::sendResponse(string response) {
     if (response.find("Transfer-Encoding: chunked") != string::npos) {
         int start = response.find("\r\n\r\n") + 4;
@@ -127,11 +135,12 @@ void HTTPserver::sendResponse(string response) {
     }
     res_len = response.size();
 
-    for (int total_sent = 0; total_sent < res_len; ) {
-        int bytes_sent = send(client_sockfd,
+    size_t total_sent = 0;
+
+    while (total_sent < res_len) {
+        ssize_t bytes_sent = writeClient(
                               response.substr(total_sent).c_str(),
-                              res_len - total_sent,
-                              0);
+                              res_len - total_sent);
 
         if (bytes_sent == -1) {
             cerr << "Unable to send\n";
@@ -230,7 +239,7 @@ void HTTPserver::buildRes(const Request & msg, string req_path) {
 
     if (type == "js")
         type = "javascript";
-    if (type == "ico")
+    else if (type == "ico")
         type = "x-icon";
 
     ifstream f(req_path.c_str(), ios::in|ios::binary|ios::ate);
@@ -256,12 +265,22 @@ void HTTPserver::buildRes(const Request & msg, string req_path) {
         sendResponse(string(res_msg));
     }
     else {
-        send(client_sockfd, res_msg.c_str(), res_msg.length(), 0);
-        send(client_sockfd, static_file, file_size, 0);
+        writeClient(res_msg.c_str(), res_msg.length());
+        size_t total_sent = 0;
+
+        while (total_sent < res_len) {
+            ssize_t bytes_sent = writeClient(static_file, file_size);
+
+            if (bytes_sent == -1) {
+                cerr << "Unable to send\n";
+                exit(1);
+            }
+            total_sent += bytes_sent;
+        }
     }
 }
 
-size_t write_callback(char *ptr, size_t size, size_t nmemb, void *userdata) {
+size_t writeCallback(char *ptr, size_t size, size_t nmemb, void *userdata) {
     size_t real_size = size * nmemb;
     std::string *response = static_cast<std::string*>(userdata);
     response->append(ptr, real_size);
@@ -294,7 +313,7 @@ string HTTPserver::forwardResponse(Request dynamic_req, string backend_url) {
     curl_easy_setopt(handle, CURLOPT_HTTPHEADER, headers);
 
     curl_easy_setopt(handle, CURLOPT_HEADER, 1);
-    curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, write_callback);
+    curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, writeCallback);
     curl_easy_setopt(handle, CURLOPT_WRITEDATA, (void*)&response);
 
     curl_easy_perform(handle);

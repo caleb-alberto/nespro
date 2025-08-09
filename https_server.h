@@ -11,10 +11,10 @@ public:
     ~HTTPSserver();
 
 private:
-    int acceptConnection(const int socket);
-    void closeConnection(const int client);
-    std::string recvReq(const int socket);
-    void sendResponse(std::string response);
+    int acceptConnection(const int socket) override;
+    void closeConnection(const int client) override;
+    std::string recvClient(char* buf, size_t size) override;
+    ssize_t writeClient(const char* buf, const size_t size) override;
 };
 
 #endif

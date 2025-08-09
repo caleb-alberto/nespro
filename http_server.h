@@ -39,14 +39,16 @@ public:
 
 protected:
     int startServer();
-    int acceptConnection(const int socket);
-    void closeConnection(const int client);
+    virtual int acceptConnection(const int socket);
+    virtual void closeConnection(const int client);
+    virtual ssize_t recvClient(char* buf, size_t size);
+    std::string recvReq();
+    virtual ssize_t writeClient(const char* buf, const size_t size);
     void sendResponse(std::string response);
-    std::string forwardResponse(Request dynamic_req, std::string backend_url);
-    void buildRes(const Request & msg, std::string req_path);
-    std::string recvReq(const int socket);
     Request parseReq(std::string req);
     std::unordered_map<std::string, std::string> parseStatDir(std::string dir);
+    void buildRes(const Request & msg, std::string req_path);
+    std::string forwardResponse(Request dynamic_req, std::string backend_url);
 
     addrinfo hints, *res;
     sockaddr_in client_addr;
@@ -56,7 +58,7 @@ protected:
     int client_sockfd;
     std::string response;
     std::string req_str;
-    int res_len;
+    size_t res_len;
     std::unordered_map<std::string, std::string> endpoints;
 };
 
