@@ -38,9 +38,14 @@ int HTTPserver::startServer() {
 
 }
 
-int HTTPserver::acceptConnection(const int socket) {
+void HTTPserver::acceptConnection(const int socket) {
     addr_size = sizeof(client_addr);
-    return accept(sockfd, (sockaddr *)&client_addr, &addr_size);
+    client_sockfd = accept(sockfd, (sockaddr *)&client_addr, &addr_size);
+
+    if (client_sockfd < 1) {
+        cerr << "Unable to accept\n";
+        exit(1);
+    }
 }
 
 void HTTPserver::closeConnection(const int client) {
@@ -55,12 +60,7 @@ void HTTPserver::startListen(string backend_url) {
     cout << "Socket is listening\n";
 
     while(true) {
-        client_sockfd = acceptConnection(sockfd);
-
-        if (client_sockfd == -1) {
-            cerr << "Unable to accept\n";
-            exit(1);
-        }
+        acceptConnection(sockfd);
 
         sockaddr_in* client_in = (sockaddr_in*)&client_addr;
         inet_ntop(AF_INET, &client_in->sin_addr, client_ip, INET_ADDRSTRLEN);

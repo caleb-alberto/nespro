@@ -13,7 +13,7 @@ public:
     ~HTTPSserver();
 
 private:
-    int acceptConnection(const int socket) override;
+    void acceptConnection(const int socket) override;
     void closeConnection(const int client) override;
     ssize_t recvClient(char* buf, size_t size) override;
     ssize_t writeClient(const char* buf, const size_t size) override;

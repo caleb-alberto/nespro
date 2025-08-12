@@ -37,7 +37,7 @@ public:
 
 protected:
     int startServer();
-    virtual int acceptConnection(const int socket);
+    virtual void acceptConnection(const int socket);
     virtual void closeConnection(const int client);
     virtual ssize_t recvClient(char* buf, size_t size);
     std::string recvReq();

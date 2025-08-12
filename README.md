@@ -5,12 +5,11 @@ NESPRO
 - [x] create makefile for http and https compile
   - ensure proper flags: `-lcurl -lssl -lcrypto` (`-lssl` & `-lcrypto` for HTTPS only)
 - [x] configure sending images
-- [ ] configure JSON nginx like config structure for server
 - [ ] write description README
   - describe project purpose (HTTP/HTTPS file server)
   - how to compile and run
   - any prerequisites (e.g., OpenSSL, Linux only)
-- [ ] inherit HTTPS from HTTP class and overload using openSSL  
+- [x] inherit HTTPS from HTTP class and overload using openSSL  
   openSSL functionality to be used:
   - `SSL_new()`
   - `SSL_set_fd()`
@@ -23,5 +22,5 @@ NESPRO
 - [ ] domain name -> ip
 - [ ] port forwarding (443 → my machine)
 - [ ] assign static LAN IP to server
-- [ ] generate SSL certs (lets encrypt)
+- [x] generate SSL certs (lets encrypt)
 - [ ] allow HTTPS through firewall
