@@ -1,5 +1,3 @@
-// set up inheritence for HTTPS_server class
-
 #ifndef HTTP_SERVER
 #define HTTP_SERVER
 

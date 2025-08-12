@@ -2,19 +2,24 @@
 #define HTTPS_SERVER
 
 #include "http_server.h"
+#include <openssl/ssl.h>
 
 class HTTPSserver : public HTTPserver {
 public:
     HTTPSserver(std::string port = "8080",
                 std::string html_dir = "",
-                std::string cert_file = "");
+                const char* cert_file = "",
+                const char* prv_file = "");
     ~HTTPSserver();
 
 private:
     int acceptConnection(const int socket) override;
     void closeConnection(const int client) override;
-    std::string recvClient(char* buf, size_t size) override;
+    ssize_t recvClient(char* buf, size_t size) override;
     ssize_t writeClient(const char* buf, const size_t size) override;
+
+    SSL_CTX *sslctx;
+    SSL *cSSL;
 };
 
 #endif
