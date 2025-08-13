@@ -1,8 +1,20 @@
-server: server.cpp https_server.cpp http_server.cpp
-	clang++ -std=c++17 -I/opt/homebrew/include -L/opt/homebrew/lib -Wall -o server server.cpp https_server.cpp http_server.cpp -lcurl -lcrypto -lssl
+CXX      := clang++
+CXXFLAGS := -std=c++17 -Wall -I/opt/homebrew/include
+LDFLAGS  := -L/opt/homebrew/lib
+LDLIBS   := -lcurl
 
-http: server.cpp  http_server.cpp
-	clang++ -std=c++17 -Wall -o server server.cpp http_server.cpp -lcurl
+SERVER_SRCS := server.cpp https_server.cpp http_server.cpp
+HTTP_SRCS   := server.cpp http_server.cpp
 
-clean: server
-	rm server
+all: server
+
+server: $(SERVER_SRCS)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $^ -o $@ $(LDLIBS) -lcrypto -lssl -lyaml-cpp
+
+http: $(HTTP_SRCS)
+	$(CXX) $(CXXFLAGS) $^ -o server $(LDLIBS) -lyaml-cpp
+
+clean:
+	rm -f server
+
+.PHONY: all http clean

@@ -255,6 +255,7 @@ void HTTPserver::buildRes(const Request & msg, string req_path) {
         "Content-Length: "
         + to_string(file_size) +
         "\r\n"
+        "Server: nespro"
         "Connection: close\r\n"
         "\r\n";
 

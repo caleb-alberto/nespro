@@ -31,7 +31,7 @@ struct Request {
 
 class HTTPserver {
 public:
-    HTTPserver(std::string port = "8080", const std::string html_dir = "");
+    HTTPserver(std::string port = "8080", const std::string dir = "");
     ~HTTPserver();
     void startListen(std::string backend_url);
 

@@ -7,7 +7,7 @@
 class HTTPSserver : public HTTPserver {
 public:
     HTTPSserver(std::string port = "8080",
-                std::string html_dir = "",
+                std::string dir = "",
                 const char* cert_file = "",
                 const char* prv_file = "");
     ~HTTPSserver();

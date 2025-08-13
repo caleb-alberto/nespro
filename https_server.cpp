@@ -2,10 +2,10 @@
 using namespace std;
 
 HTTPSserver::HTTPSserver(string port,
-                         string html_dir,
+                         string dir,
                          const char* cert_file,
                          const char* prv_file)
-    : HTTPserver(port, html_dir) {
+    : HTTPserver(port, dir) {
     SSL_load_error_strings();
     SSL_library_init();
     OpenSSL_add_all_algorithms();
