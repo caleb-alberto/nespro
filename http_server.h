@@ -40,7 +40,7 @@ protected:
     virtual void acceptConnection(const int socket);
     virtual void closeConnection(const int client);
     virtual ssize_t recvClient(char* buf, size_t size);
-    std::string recvReq();
+    ssize_t recvReq();
     virtual ssize_t writeClient(const char* buf, const size_t size);
     void sendResponse(std::string response);
     Request parseReq(std::string req);
@@ -58,6 +58,7 @@ protected:
     std::string req_str;
     size_t res_len;
     std::unordered_map<std::string, std::string> endpoints;
+    bool conditional;
 };
 
 #endif

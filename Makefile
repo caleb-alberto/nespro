@@ -3,7 +3,7 @@ CXXFLAGS := -std=c++17 -Wall -I/opt/homebrew/include
 LDFLAGS  := -L/opt/homebrew/lib
 LDLIBS   := -lcurl
 
-SERVER_SRCS := server.cpp https_server.cpp http_server.cpp
+SERVER_SRCS := ssl_server.cpp https_server.cpp http_server.cpp
 HTTP_SRCS   := server.cpp http_server.cpp
 
 all: server

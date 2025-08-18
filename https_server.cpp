@@ -36,13 +36,13 @@ void HTTPSserver::acceptConnection(const int socket) {
 
     if (client_sockfd < 1) {
         cerr << "Unable to accept\n";
-        exit(1);
+        conditional = false;
     }
 
     SSL_set_fd(cSSL, client_sockfd);
     if (SSL_accept(cSSL) < 1) {
         cerr << "Unsuccessful TLS/SSL handshake\n";
-        exit(1);
+        conditional = false;
     }
 }
 

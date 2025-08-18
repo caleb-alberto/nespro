@@ -44,7 +44,7 @@ void HTTPserver::acceptConnection(const int socket) {
 
     if (client_sockfd < 1) {
         cerr << "Unable to accept\n";
-        exit(1);
+        conditional = false;
     }
 }
 
@@ -60,27 +60,31 @@ void HTTPserver::startListen(string backend_url) {
     cout << "Socket is listening\n";
 
     while(true) {
+        conditional = true;
         acceptConnection(sockfd);
 
         sockaddr_in* client_in = (sockaddr_in*)&client_addr;
         inet_ntop(AF_INET, &client_in->sin_addr, client_ip, INET_ADDRSTRLEN);
-        cout << "Client connected from IP: " << client_ip << endl;
+        cout << "Client IP: " << client_ip << "\n\n";
 
-        req_str = recvReq();
-        Request req_msg = parseReq(req_str);
+        if (conditional && recvReq() < 1)
+            conditional = false;
 
+        if (conditional) {
+            Request req_msg = parseReq(req_str);
 
-        if (!req_msg.header_map.count("Host"))
-            sendResponse("HTTP 1.1 requests must include the 'Host:' header.");
-        else if (endpoints.count(req_msg.path))
-            buildRes(req_msg, endpoints[req_msg.path]);
-        else if (req_msg.path.at(req_msg.path.size()-1) == '/'
-                 && endpoints.count(req_msg.path + "index.html"))
-            buildRes(req_msg, endpoints[req_msg.path + "index.html"]);
-        else
-            sendResponse(forwardResponse(req_msg, backend_url));
+            if (!req_msg.header_map.count("Host"))
+                sendResponse("HTTP 1.1 requests must include the 'Host:' header.");
+            else if (endpoints.count(req_msg.path))
+                buildRes(req_msg, endpoints[req_msg.path]);
+            else if (req_msg.path.at(req_msg.path.size()-1) == '/'
+                     && endpoints.count(req_msg.path + "index.html"))
+                buildRes(req_msg, endpoints[req_msg.path + "index.html"]);
+            else
+                sendResponse(forwardResponse(req_msg, backend_url));
 
-        req_str = "";
+            req_str = "";
+        }
         closeConnection(client_sockfd);
     }
 }
@@ -89,7 +93,7 @@ ssize_t HTTPserver::recvClient(char* buf, size_t size) {
     return recv(client_sockfd, buf, size, 0);
 }
 
-string HTTPserver::recvReq() {
+ssize_t HTTPserver::recvReq() {
     const int buf_size = 1024;
     char buf[buf_size];
 
@@ -113,7 +117,7 @@ string HTTPserver::recvReq() {
         if (bytes_recv < buf_size)
             break;
     }
-    return req_str;
+    return bytes_recv;
 }
 
 ssize_t HTTPserver::writeClient(const char* buf, const size_t size) {
@@ -142,10 +146,8 @@ void HTTPserver::sendResponse(string response) {
                               response.substr(total_sent).c_str(),
                               res_len - total_sent);
 
-        if (bytes_sent == -1) {
-            cerr << "Unable to send\n";
-            exit(1);
-        }
+        if (bytes_sent == -1)
+            cerr << "Unable to send\n\n";
         total_sent += bytes_sent;
     }
 }
@@ -272,10 +274,8 @@ void HTTPserver::buildRes(const Request & msg, string req_path) {
         while (total_sent < res_len) {
             ssize_t bytes_sent = writeClient(static_file, file_size);
 
-            if (bytes_sent == -1) {
-                cerr << "Unable to send\n";
-                exit(1);
-            }
+            if (bytes_sent == -1)
+                cerr << "Unable to send\n\n";
             total_sent += bytes_sent;
         }
     }

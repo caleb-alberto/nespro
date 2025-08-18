@@ -1,5 +1,5 @@
 port: "8080"
 public folder: "html_files"
-certificate file: "/etc/letsencrypt/live/calebalberto.duckdns.org/fullchain.pem"
-private key file: "/etc/letsencrypt/live/calebalberto.duckdns.org/privkey.pem"
 backend url: "http://localhost:3000"
+certificate file: "/etc/letsencrypt/live/calebalberto.duckdns.org-0001/fullchain.pem" # required for ssl
+private key file: "/etc/letsencrypt/live/calebalberto.duckdns.org-0001/privkey.pem"   # required for ssl

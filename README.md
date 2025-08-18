@@ -5,7 +5,8 @@ NESPRO
 - [x] create makefile for http and https compile
 - [x] configure sending images
 - [x] configure JSON nginx like config structure for server
-- [x] inherit HTTPS from HTTP class and overload using openSSL  
+- [x] inherit HTTPS from HTTP class and overload using openSSL
+- [ ] dedicated threads for each connection
 - [ ] write description README
   - describe project purpose (HTTP/HTTPS file server)
   - how to compile and run
