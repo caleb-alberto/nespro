@@ -1,5 +1,34 @@
+/*
+ * implement logging class which includes structure:
+ *
+ * [2023-10-27 10:23:45] [INFO] [192.168.1.100]
+ * "GET /static/style.css HTTP/1.1" 15ms - 342rx/1520tx -
+ * "Mozilla/5.0..." - example.com - TLSv1.3
+ *
+ * [2023-10-27 10:23:46] [ERROR] [192.168.1.22]
+ * TLS Handshake Failed: "sslv3 alert handshake failure"
+ *
+ * for time:
+ *    time_t t = time(nullptr);
+ *    tm* local_time = localtime(&t);
+ *    ostringstream oss;
+ *    oss << put_time(local_time, "%Y-%m-%d %H:%M:%S");
+ *    return oss.str()
+ *
+ * at end of processing log message using objcet
+ * processing each connection (which happens after accept())
+ * should happen in a seperate function for compatibility with
+ * multithreading
+ */
+
 #include "http_server.h"
 using namespace std;
+
+namespace server {
+    void log(int fd, const char* message) {
+        write(fd, message, strlen(message));
+    }
+}
 
 HTTPserver::HTTPserver(string port, string dir) {
     memset(&hints, 0, sizeof hints);
@@ -12,6 +41,8 @@ HTTPserver::HTTPserver(string port, string dir) {
 
     endpoints = parseStatDir(dir);
     int server = startServer();
+
+    lfd = open("server_log.txt", O_WRONLY | O_CREAT | O_TRUNC, 0644);
 
     if (server == 1) {
         cerr << "Socket was unable to be created\n";
@@ -28,6 +59,7 @@ HTTPserver::HTTPserver(string port, string dir) {
 HTTPserver::~HTTPserver() {
     freeaddrinfo(res);
     curl_global_cleanup();
+    close(lfd);
 }
 
 int HTTPserver::startServer() {
@@ -43,7 +75,8 @@ void HTTPserver::acceptConnection(const int socket) {
     client_sockfd = accept(sockfd, (sockaddr *)&client_addr, &addr_size);
 
     if (client_sockfd < 1) {
-        cerr << "Unable to accept\n";
+        msg.error = true;
+        msg.error_msg = "Unable to accept";
         conditional = false;
     }
 }
@@ -59,13 +92,16 @@ void HTTPserver::startListen(string backend_url) {
     }
     cout << "Socket is listening\n";
 
+    const Message empty_msg{};
+
     while(true) {
         conditional = true;
         acceptConnection(sockfd);
 
         sockaddr_in* client_in = (sockaddr_in*)&client_addr;
         inet_ntop(AF_INET, &client_in->sin_addr, client_ip, INET_ADDRSTRLEN);
-        cout << "Client IP: " << client_ip << "\n\n";
+
+        msg.ip = string(client_ip);
 
         if (conditional && recvReq() < 1)
             conditional = false;
@@ -73,19 +109,30 @@ void HTTPserver::startListen(string backend_url) {
         if (conditional) {
             Request req_msg = parseReq(req_str);
 
-            if (!req_msg.header_map.count("Host"))
+            msg.method = req_msg.method;
+            msg.path = req_msg.path;
+            msg.version = req_msg.version;
+            msg.user_agent = req_msg.header_map["User-Agent"];
+            msg.host = req_msg.header_map["Host"];
+
+            if (!req_msg.header_map.count("Host")) {
                 sendResponse("HTTP 1.1 requests must include the 'Host:' header.");
+                msg.error = true;
+                msg.error_msg = "HTTP 1.1 requests must include the 'Host:' header.";
+            }
             else if (endpoints.count(req_msg.path))
-                buildRes(req_msg, endpoints[req_msg.path]);
+                buildRes(req_msg.method, endpoints[req_msg.path]);
             else if (req_msg.path.at(req_msg.path.size()-1) == '/'
                      && endpoints.count(req_msg.path + "index.html"))
-                buildRes(req_msg, endpoints[req_msg.path + "index.html"]);
+                buildRes(req_msg.method, endpoints[req_msg.path + "index.html"]);
             else
                 sendResponse(forwardResponse(req_msg, backend_url));
 
             req_str = "";
         }
         closeConnection(client_sockfd);
+        logMessage();
+        msg = empty_msg;
     }
 }
 
@@ -103,11 +150,13 @@ ssize_t HTTPserver::recvReq() {
         bytes_recv = recvClient(buf, buf_size);
 
         if (bytes_recv == -1) {
-            cerr << "Unable to recieve message\n";
+            msg.error = true;
+            msg.error_msg = "Unable to recieve message";
             break;
         }
         else if (bytes_recv == 0) {
-            cout << "Client disconnected\n";
+            msg.error = true;
+            msg.error_msg = "Client disconnected";
             break;
         }
 
@@ -117,6 +166,7 @@ ssize_t HTTPserver::recvReq() {
         if (bytes_recv < buf_size)
             break;
     }
+    msg.read = bytes_recv;
     return bytes_recv;
 }
 
@@ -147,9 +197,17 @@ void HTTPserver::sendResponse(string response) {
                               res_len - total_sent);
 
         if (bytes_sent == -1)
-            cerr << "Unable to send\n\n";
+            msg.error = true;
+            msg.error_msg = "Unable to send message";
         total_sent += bytes_sent;
     }
+    msg.sent = total_sent;
+}
+
+void HTTPserver::logMessage() {
+    stringstream ss;
+
+
 }
 
 Request HTTPserver::parseReq(string req) {
@@ -171,14 +229,14 @@ Request HTTPserver::parseReq(string req) {
     getline(startline_stream, temp.version, '\r');
     temp.version.erase(temp.version.find_last_not_of(" \t") + 1);
 
-    if (temp.path.at(0) != '/') {
-        try {
+    try {
+        if (temp.path.at(0) != '/') {
             int first = temp.path.find('/');
             int second = temp.path.find('/', first+1);
             temp.path = temp.path.substr(temp.path.find('/', second+1));
         }
-        catch (out_of_range) {} // just ignore it
     }
+    catch (out_of_range) {} // just ignore it
 
     for (int i = 1; i != tokens.size(); i++) {
         istringstream header_stream(tokens[i]);
@@ -222,7 +280,7 @@ unordered_map<string, string> HTTPserver::parseStatDir(string dir) {
     return paths;
 }
 
-void HTTPserver::buildRes(const Request & msg, string req_path) {
+void HTTPserver::buildRes(string method, string req_path) {
     string res_msg;
     string form;
     time_t t = time(nullptr);
@@ -257,12 +315,12 @@ void HTTPserver::buildRes(const Request & msg, string req_path) {
         "Content-Length: "
         + to_string(file_size) +
         "\r\n"
-        "Server: nespro"
+        "Server: nespro\r\n"
         "Connection: close\r\n"
         "\r\n";
 
     if (form == "text/") {
-        if (msg.method == "GET")
+        if (method == "GET")
             res_msg += string(static_file);
 
         sendResponse(string(res_msg));
@@ -274,10 +332,13 @@ void HTTPserver::buildRes(const Request & msg, string req_path) {
         while (total_sent < res_len) {
             ssize_t bytes_sent = writeClient(static_file, file_size);
 
-            if (bytes_sent == -1)
-                cerr << "Unable to send\n\n";
+            if (bytes_sent == -1) {
+                msg.error = true;
+                msg.error_msg = "Unable to send message";
+            }
             total_sent += bytes_sent;
         }
+        msg.sent = total_sent;
     }
 }
 

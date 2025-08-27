@@ -35,15 +35,21 @@ void HTTPSserver::acceptConnection(const int socket) {
     client_sockfd = accept(sockfd, (sockaddr *)&client_addr, &addr_size);
 
     if (client_sockfd < 1) {
-        cerr << "Unable to accept\n";
+        msg.error = true;
+        msg.error_msg = "Unable to accept";
         conditional = false;
+
+        return;
     }
 
     SSL_set_fd(cSSL, client_sockfd);
+
     if (SSL_accept(cSSL) < 1) {
-        cerr << "Unsuccessful TLS/SSL handshake\n";
+        msg.error = true;
+        msg.error_msg = "Unsuccessful TLS/SSL handshake";
         conditional = false;
     }
+    msg.tls_version = string(SSL_get_version(cSSL));
 }
 
 void HTTPSserver::closeConnection(const int client) {
