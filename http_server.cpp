@@ -1,20 +1,4 @@
 /*
- * implement logging class which includes structure:
- *
- * [2023-10-27 10:23:45] [INFO] [192.168.1.100]
- * "GET /static/style.css HTTP/1.1" 15ms - 342rx/1520tx -
- * "Mozilla/5.0..." - example.com - TLSv1.3
- *
- * [2023-10-27 10:23:46] [ERROR] [192.168.1.22]
- * TLS Handshake Failed: "sslv3 alert handshake failure"
- *
- * for time:
- *    time_t t = time(nullptr);
- *    tm* local_time = localtime(&t);
- *    ostringstream oss;
- *    oss << put_time(local_time, "%Y-%m-%d %H:%M:%S");
- *    return oss.str()
- *
  * at end of processing log message using objcet
  * processing each connection (which happens after accept())
  * should happen in a seperate function for compatibility with
@@ -23,12 +7,6 @@
 
 #include "http_server.h"
 using namespace std;
-
-namespace server {
-    void log(int fd, const char* message) {
-        write(fd, message, strlen(message));
-    }
-}
 
 HTTPserver::HTTPserver(string port, string dir) {
     memset(&hints, 0, sizeof hints);
@@ -42,7 +20,7 @@ HTTPserver::HTTPserver(string port, string dir) {
     endpoints = parseStatDir(dir);
     int server = startServer();
 
-    lfd = open("server_log.txt", O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    lfd = open("server_log.txt", O_WRONLY | O_CREAT | O_APPEND);
 
     if (server == 1) {
         cerr << "Socket was unable to be created\n";
@@ -179,7 +157,7 @@ void HTTPserver::sendResponse(string response) {
         int start = response.find("\r\n\r\n") + 4;
         int end = response.size();
 
-        stringstream stream;
+        ostringstream stream;
         stream << hex << end - start;
         string chunked_size = stream.str() + "\r\n";
         string ending = "\r\n0\r\n\r\n";
@@ -205,9 +183,37 @@ void HTTPserver::sendResponse(string response) {
 }
 
 void HTTPserver::logMessage() {
-    stringstream ss;
+    ostringstream oss;
 
+    time_t t = time(nullptr);
+    tm* local_time = localtime(&t);
+    ostringstream time_oss;
+    time_oss << put_time(local_time, "[%Y-%m-%d %H:%M:%S]");
 
+    oss << time_oss.str();
+
+    if (msg.error) {
+        oss << " [ERROR] ";
+
+        if (msg.error_msg != "Unable to accept")
+            oss << "[" << msg.ip << "]";
+        oss << endl << msg.error_msg << "\n\n";
+    }
+    else {
+        msg.user_agent.erase(msg.user_agent.find(')') + 1);
+
+        oss << " [INFO] [" << msg.ip << "]\n";
+        oss << '"' << msg.method << ' ' << msg.path << ' ' << msg.version << '"';
+        oss << " [placeholder for time] - ";
+        oss << msg.read << "rx/" << msg.sent << "tx -\n";
+        oss << '"' << msg.user_agent << '"' << " - " << msg.host << " -";
+        if (!msg.tls_version.empty())
+            oss << ' ' << msg.tls_version;
+        oss << "\n\n";
+    }
+
+    string log_msg = oss.str();
+    write(lfd, log_msg.c_str(), log_msg.length());
 }
 
 Request HTTPserver::parseReq(string req) {

@@ -47,10 +47,6 @@ struct Message {
     size_t sent;
 };
 
-namespace server {
-    void log(int fd, const char* message);
-}
-
 class HTTPserver {
 public:
     HTTPserver(std::string port = "8080", const std::string dir = "");
@@ -71,7 +67,6 @@ protected:
     void buildRes(std::string method, std::string req_path);
     std::string forwardResponse(Request dynamic_req, std::string backend_url);
 
-    static const Message empty_msg;
     Message msg;
     int lfd;
     addrinfo hints, *res;
