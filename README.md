@@ -18,3 +18,6 @@ NESPRO
 - [ ] port forwarding (443 → my machine)
 - [ ] assign static LAN IP to server
 - [ ] allow HTTPS through firewall
+- [ ] add timeouts and limits (max header size, max body size, max concurrent conns).
+- [ ] keep a watchdog (systemd, supervisord) to restart on crashes.
+- [ ] run server as a non-privileged user inside a container

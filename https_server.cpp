@@ -29,9 +29,12 @@ HTTPSserver::~HTTPSserver() {
     SSL_CTX_free(sslctx);
 }
 
-void HTTPSserver::acceptConnection(const int socket) {
-    cSSL = SSL_new(sslctx);
+void HTTPSserver::acceptConnection(int& client_sockfd, Message& msg) {
+    sockaddr_in client_addr;
+    char client_ip[INET_ADDRSTRLEN];
     addr_size = sizeof(client_addr);
+    cSSL = SSL_new(sslctx);
+
     client_sockfd = accept(sockfd, (sockaddr *)&client_addr, &addr_size);
 
     if (client_sockfd < 1) {
@@ -40,6 +43,11 @@ void HTTPSserver::acceptConnection(const int socket) {
         conditional = false;
 
         return;
+    }
+    else {
+        sockaddr_in* client_in = (sockaddr_in*)&client_addr;
+        inet_ntop(AF_INET, &client_in->sin_addr, client_ip, INET_ADDRSTRLEN);
+        msg.ip = string(client_ip);
     }
 
     SSL_set_fd(cSSL, client_sockfd);
@@ -58,10 +66,12 @@ void HTTPSserver::closeConnection(const int client) {
     close(client);
 }
 
-ssize_t HTTPSserver::recvClient(char* buf, size_t size) {
+ssize_t HTTPSserver::recvClient(int client_sockfd, char* buf, size_t size) {
     return SSL_read(cSSL, buf, size);
 }
 
-ssize_t HTTPSserver::writeClient(const char* buf, const size_t size) {
+ssize_t HTTPSserver::writeClient(int client_sockfd,
+                                 const char* buf,
+                                 const size_t size) {
     return SSL_write(cSSL, buf, size);
 }

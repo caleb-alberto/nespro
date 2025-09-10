@@ -23,7 +23,8 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <chrono>
-#include <format>
+#include <time.h>
+#include <thread>
 
 struct Request {
     std::string method;
@@ -43,6 +44,7 @@ struct Message {
     std::string host;
     std::string tls_version;
     std::string error_msg;
+    double time;
     size_t read;
     size_t sent;
 };
@@ -55,28 +57,31 @@ public:
 
 protected:
     int startServer();
-    virtual void acceptConnection(const int socket);
+    virtual void acceptConnection(int& client_sockfd, Message& msg);
     virtual void closeConnection(const int client);
-    virtual ssize_t recvClient(char* buf, size_t size);
-    ssize_t recvReq();
-    virtual ssize_t writeClient(const char* buf, const size_t size);
-    void sendResponse(std::string response);
-    void logMessage();
+    void performThread(int client_sockfd,
+                       Message& msg,
+                       std::string backend_url);
+    virtual ssize_t recvClient(int client_sockfd, char* buf, size_t size);
+    ssize_t recvReq(int client_sockfd, Message& msg, std::string& req_str);
+    virtual ssize_t writeClient(int client_sockfd,
+                                const char* buf,
+                                const size_t size);
+    void sendResponse(int client_sockfd, std::string response, Message& msg);
+    void logMessage(Message& msg);
     Request parseReq(std::string req);
     std::unordered_map<std::string, std::string> parseStatDir(std::string dir);
-    void buildRes(std::string method, std::string req_path);
+    void buildRes(int client_sockfd,
+                  std::string method,
+                  std::string req_path,
+                  Message& msg);
     std::string forwardResponse(Request dynamic_req, std::string backend_url);
 
-    Message msg;
+    int connections;
     int lfd;
     addrinfo hints, *res;
-    sockaddr_in client_addr;
-    char client_ip[INET_ADDRSTRLEN];
     socklen_t addr_size;
     int sockfd;
-    int client_sockfd;
-    std::string response;
-    std::string req_str;
     size_t res_len;
     std::unordered_map<std::string, std::string> endpoints;
     bool conditional;

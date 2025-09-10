@@ -1,0 +1,348 @@
+[2025-08-31 20:20:51] [INFO] [127.0.0.1]
+"GET / HTTP/1.1" [0.000304] - 438rx/461tx -
+"Mozilla/5.0 (X11; Linux x86_64; rv:142.0)" - localhost:8080 -
+
+[2025-08-31 20:20:51] [INFO] [127.0.0.1]
+"GET /favicon.ico HTTP/1.1" [0.000207] - 438rx/38028tx -
+"Mozilla/5.0 (X11; Linux x86_64; rv:142.0)" - localhost:8080 -
+
+[2025-08-31 21:01:30] [INFO] [127.0.0.1]
+"GET / HTTP/1.1" [0.00028] - 438rx/466tx -
+"Mozilla/5.0 (X11; Linux x86_64; rv:142.0)" - localhost:8080 -
+
+[2025-08-31 21:01:30] [ERROR] [127.0.0.1]
+Client disconnected
+
+[2025-08-31 21:01:34] [INFO] []
+"  " [0.00070] - 5rx/0tx -
+"" -  -
+
+[2025-08-31 21:02:18] [INFO] [127.0.0.1]
+"ÿôÿýGET / HTTP/1.1" [0.00042] - 16rx/137tx -
+"" -  -
+
+[2025-08-31 21:21:02] [INFO] [127.0.0.1]
+"ÿôÿý  " [0.00030] - 5rx/131551174210552tx -
+"" -  -
+
+[2025-08-31 21:21:08] [INFO] [127.0.0.1]
+"GET / HTTP/1.1" [0.00013] - 438rx/461tx -
+"Mozilla/5.0 (X11; Linux x86_64; rv:142.0)" - localhost:8080 -
+
+[2025-08-31 21:21:15] [INFO] []
+"ÿôÿý  " [0.00042] - 5rx/0tx -
+"" -  -
+
+[2025-08-31 21:21:37] [INFO] [127.0.0.1]
+"ÿôÿý  " [0.00027] - 5rx/0tx -
+"" -  -
+
+[2025-08-31 21:21:42] [INFO] [127.0.0.1]
+"GET / HTTP/1.1" [0.00018] - 438rx/466tx -
+"Mozilla/5.0 (X11; Linux x86_64; rv:142.0)" - localhost:8080 -
+
+[2025-08-31 21:21:43] [INFO] []
+"ÿôÿý  " [0.00061] - 5rx/0tx -
+"" -  -
+
+[2025-08-31 21:28:21] [INFO] [127.0.0.1]
+"ÿôÿý  " [0.00024] - 5rx/0tx -
+"" -  -
+
+[2025-08-31 21:28:23] [INFO] []
+"ÿôÿý  " [0.00083] - 5rx/0tx -
+"" -  -
+
+[2025-08-31 21:33:37] [INFO] [127.0.0.1]
+"GET / HTTP/1.1" [0.00013] - 438rx/466tx -
+"Mozilla/5.0 (X11; Linux x86_64; rv:142.0)" - localhost:8080 -
+
+[2025-08-31 21:33:39] [INFO] []
+"ÿôÿý  " [0.00043] - 5rx/0tx -
+"" -  -
+
+[2025-08-31 21:33:52] [INFO] []
+"ÿôÿý  " [0.00098] - 5rx/0tx -
+"" -  -
+
+[2025-08-31 21:36:27] [INFO] [127.0.0.1]
+"ÿôÿý  " [0.00042] - 5rx/134155868451736tx -
+"" -  -
+
+[2025-08-31 21:36:27] [INFO] [127.0.0.1]
+"GET / HTTP/1.1" [0.00031] - 438rx/463tx -
+"Mozilla/5.0 (X11; Linux x86_64; rv:142.0)" - localhost:8080 -
+
+[2025-08-31 21:45:37] [INFO] [127.0.0.1]
+"ÿôÿý  " [0.00054] - 5rx/133341116511128tx -
+"" -  -
+
+[2025-08-31 21:45:41] [INFO] []
+"ÿôÿý  " [0.00109] - 5rx/0tx -
+"" -  -
+
+[2025-08-31 21:45:51] [INFO] [127.0.0.1]
+"GET / HTTP/1.1" [0.00076] - 438rx/461tx -
+"Mozilla/5.0 (X11; Linux x86_64; rv:142.0)" - localhost:8080 -
+
+[2025-08-31 21:52:33] [INFO] [127.0.0.1]
+"ÿôÿý  " [0.00060] - 5rx/135953586992120tx -
+"" -  -
+
+[2025-08-31 21:53:48] [INFO] [127.0.0.1]
+"  " [0.00051] - 2rx/281470681751424tx -
+"" -  -
+
+[2025-08-31 21:54:59] [INFO] [127.0.0.1]
+"GET / HTTP/1.1" [0.00023] - 438rx/466tx -
+"Mozilla/5.0 (X11; Linux x86_64; rv:142.0)" - localhost:8080 -
+
+[2025-08-31 21:55:19] [INFO] [127.0.0.1]
+"GET / HTTP/1.1" [0.00023] - 438rx/466tx -
+"Mozilla/5.0 (X11; Linux x86_64; rv:142.0)" - localhost:8080 -
+
+[2025-08-31 21:59:10] [INFO] [127.0.0.1]
+"GET /slkdfj HTTP/1.1" [0.00039] - 444rx/0tx -
+"Mozilla/5.0 (X11; Linux x86_64; rv:142.0)" - localhost:8080 -
+
+[2025-08-31 21:59:10] [INFO] [127.0.0.1]
+"GET /slkdfj HTTP/1.1" [0.00021] - 444rx/0tx -
+"Mozilla/5.0 (X11; Linux x86_64; rv:142.0)" - localhost:8080 -
+
+[2025-08-31 21:59:10] [INFO] [127.0.0.1]
+"GET /slkdfj HTTP/1.1" [0.00018] - 444rx/0tx -
+"Mozilla/5.0 (X11; Linux x86_64; rv:142.0)" - localhost:8080 -
+
+[2025-08-31 21:59:10] [INFO] [127.0.0.1]
+"GET /slkdfj HTTP/1.1" [0.00020] - 444rx/0tx -
+"Mozilla/5.0 (X11; Linux x86_64; rv:142.0)" - localhost:8080 -
+
+[2025-08-31 21:59:10] [INFO] [127.0.0.1]
+"GET /slkdfj HTTP/1.1" [0.00023] - 444rx/0tx -
+"Mozilla/5.0 (X11; Linux x86_64; rv:142.0)" - localhost:8080 -
+
+[2025-08-31 21:59:10] [INFO] [127.0.0.1]
+"GET /slkdfj HTTP/1.1" [0.00021] - 444rx/0tx -
+"Mozilla/5.0 (X11; Linux x86_64; rv:142.0)" - localhost:8080 -
+
+[2025-08-31 21:59:10] [INFO] [127.0.0.1]
+"GET /slkdfj HTTP/1.1" [0.00023] - 444rx/0tx -
+"Mozilla/5.0 (X11; Linux x86_64; rv:142.0)" - localhost:8080 -
+
+[2025-08-31 21:59:10] [INFO] [127.0.0.1]
+"GET /slkdfj HTTP/1.1" [0.00022] - 444rx/0tx -
+"Mozilla/5.0 (X11; Linux x86_64; rv:142.0)" - localhost:8080 -
+
+[2025-08-31 21:59:10] [INFO] [127.0.0.1]
+"GET /slkdfj HTTP/1.1" [0.00023] - 444rx/0tx -
+"Mozilla/5.0 (X11; Linux x86_64; rv:142.0)" - localhost:8080 -
+
+[2025-08-31 21:59:10] [INFO] [127.0.0.1]
+"GET /slkdfj HTTP/1.1" [0.00024] - 444rx/0tx -
+"Mozilla/5.0 (X11; Linux x86_64; rv:142.0)" - localhost:8080 -
+
+[2025-08-31 21:59:55] [INFO] []
+"ÿôÿý  " [0.00342] - 5rx/0tx -
+"" -  -
+
+[2025-08-31 21:59:58] [ERROR] []
+Client disconnected
+
+[2025-08-31 22:13:07] [INFO] [127.0.0.1]
+"ÿôÿý  " [0.00114] - 5rx/136118244881400tx -
+"" -  -
+
+[2025-08-31 22:13:14] [INFO] [127.0.0.1]
+"GET / HTTP/1.1" [0.00058] - 438rx/461tx -
+"Mozilla/5.0 (X11; Linux x86_64; rv:142.0)" - localhost:8080 -
+
+[2025-08-31 22:13:14] [ERROR] [127.0.0.1]
+Client disconnected
+
+[2025-08-31 22:13:23] [INFO] []
+"  " [0.00195] - 5rx/0tx -
+"" -  -
+
+[2025-08-31 22:13:41] [INFO] [127.0.0.1]
+"ÿôÿýGET / HTTP/1.1" [0.00039] - 438rx/137tx -
+"Mozilla/5.0 (X11; Linux x86_64; rv:142.0)" - localhost:8080 -
+
+[2025-08-31 22:13:41] [INFO] [127.0.0.1]
+"GET / HTTP/1.1" [0.00013] - 438rx/461tx -
+"Mozilla/5.0 (X11; Linux x86_64; rv:142.0)" - localhost:8080 -
+
+[2025-08-31 22:13:41] [INFO] [127.0.0.1]
+"GET / HTTP/1.1" [0.00033] - 438rx/461tx -
+"Mozilla/5.0 (X11; Linux x86_64; rv:142.0)" - localhost:8080 -
+
+[2025-08-31 22:13:42] [INFO] []
+"ÿôÿý  " [0.00144] - 5rx/0tx -
+"" -  -
+
+[2025-09-09 22:24:02] [INFO] []
+"GET / HTTP/1.1" [0.00065] - 16rx/461tx -
+"" -  -
+
+[2025-09-09 22:24:21] [INFO] []
+"p  " [0.00041] - 5rx/461tx -
+"" -  -
+
+[2025-09-09 22:24:32] [INFO] []
+"GET / HTTP/1.1" [0.00037] - 16rx/466tx -
+"" -  -
+
+[2025-09-09 22:25:39] [INFO] []
+"  " [0.00024] - 2rx/466tx -
+"" -  -
+
+[2025-09-09 22:26:07] [INFO] []
+"  " [0.00028] - 2rx/466tx -
+"" -  -
+
+[2025-09-09 22:26:18] [INFO] []
+"GET /backend HTTP/1.1" [0.00081] - 23rx/0tx -
+"" -  -
+
+[2025-09-09 22:26:29] [INFO] []
+"GET /other.html HTTP/1.1" [0.00034] - 26rx/512tx -
+"" -  -
+
+[2025-09-09 22:32:59] [ERROR] []
+Client disconnected
+
+[2025-09-09 22:33:01] [ERROR] []
+Client disconnected
+
+[2025-09-09 22:37:28] [INFO] []
+"ÿôÿý  " [0.00060] - 5rx/125869558657316tx -
+"" -  -
+
+[2025-09-09 22:39:47] [INFO] []
+"GET / HTTP/1.1" [0.00102] - 16rx/461tx -
+"" -  -
+
+[2025-09-09 22:39:57] [ERROR] []
+Client disconnected
+
+[2025-09-09 22:40:06] [ERROR] []
+Client disconnected
+
+[2025-09-09 22:41:45] [ERROR] []
+Client disconnected
+
+[2025-09-09 22:46:56] [INFO] []
+"ÿôÿý  " [0.00026] - 5rx/131686030700836tx -
+"" -  -
+
+[2025-09-09 22:58:54] [INFO] []
+"GET / HTTP/1.1" [0.00034] - 438rx/466tx -
+"Mozilla/5.0 (X11; Linux x86_64; rv:142.0)" - localhost:8080 -
+
+[2025-09-09 22:58:54] [INFO] []
+"GET /favicon.ico HTTP/1.1" [0.00028] - 438rx/38028tx -
+"Mozilla/5.0 (X11; Linux x86_64; rv:142.0)" - localhost:8080 -
+
+[2025-09-09 23:01:09] [INFO] []
+"GET / HTTP/1.1" [0.00068] - 16rx/461tx -
+"" -  -
+
+[2025-09-09 23:02:51] [INFO] []
+"GET / HTTP/1.1" [0.00069] - 16rx/461tx -
+"" -  -
+
+[2025-09-09 23:04:43] [INFO] []
+"GET / HTTP/1.1" [0.00027] - 438rx/466tx -
+"Mozilla/5.0 (X11; Linux x86_64; rv:142.0)" - localhost:8080 -
+
+[2025-09-10 11:38:43] [ERROR] []
+HTTP 1.1 requests must include the 'Host:' header.
+
+[2025-09-10 11:40:50] [ERROR] []
+HTTP 1.1 requests must include the 'Host:' header.
+
+[2025-09-10 11:42:22] [INFO] []
+"GET / HTTP/1.1" [0.00081] - 16rx/461tx -
+"" -  -
+
+[2025-09-10 14:12:37] [INFO] []
+"GET / HTTP/1.1" [0.00056] - 438rx/466tx -
+"Mozilla/5.0 (X11; Linux x86_64; rv:142.0)" - localhost:8080 -
+
+[2025-09-10 14:12:41] [INFO] []
+"  " [0.00098] - 2rx/466tx -
+"" -  -
+
+[2025-09-10 14:12:59] [INFO] []
+"GET / HTTP/1.1" [0.00036] - 16rx/461tx -
+"" -  -
+
+[2025-09-10 14:14:11] [ERROR] []
+HTTP 1.1 requests must include the 'Host:' header.
+
+[2025-09-10 14:14:16] [ERROR] []
+
+
+[2025-09-10 14:53:51] [INFO] []
+"GET / HTTP/1.1" [0.00071] - 439rx/461tx -
+"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)" - 192.168.1.175:8080 -
+
+[2025-09-10 14:53:51] [INFO] []
+"GET /favicon.ico HTTP/1.1" [0.00104] - 386rx/38028tx -
+"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)" - 192.168.1.175:8080 -
+
+[2025-09-10 14:54:14] [INFO] []
+"GET / HTTP/1.1" [0.00073] - 465rx/466tx -
+"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)" - 192.168.1.175:8080 -
+
+[2025-09-10 14:54:14] [INFO] []
+"GET /favicon.ico HTTP/1.1" [0.00084] - 386rx/38028tx -
+"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)" - 192.168.1.175:8080 -
+
+[2025-09-10 14:54:16] [ERROR] []
+HTTP 1.1 requests must include the 'Host:' header.
+
+[2025-09-10 15:00:19] [ERROR] []
+Unable to recieve message
+
+[2025-09-10 15:00:42] [ERROR] []
+Unable to recieve message
+
+[2025-09-10 15:00:54] [ERROR] []
+Unable to send message
+
+[2025-09-10 15:01:08] [ERROR] []
+Unable to send message
+
+[2025-09-10 15:01:40] [ERROR] []
+Unable to send message
+
+[2025-09-10 15:03:03] [ERROR] []
+Unable to recieve message
+
+[2025-09-10 15:03:19] [ERROR] []
+HTTP 1.1 requests must include the 'Host:' header.
+
+[2025-09-10 15:03:19] [ERROR] []
+HTTP 1.1 requests must include the 'Host:' header.
+
+[2025-09-10 15:03:24] [ERROR] []
+
+
+[2025-09-10 15:03:24] [ERROR] []
+
+
+[2025-09-10 15:05:04] [ERROR] []
+Unable to recieve message
+
+[2025-09-10 15:05:20] [ERROR] []
+Unable to recieve message
+
+[2025-09-10 15:05:29] [ERROR] []
+Unable to recieve message
+
+[2025-09-10 15:05:48] [ERROR] []
+Unable to recieve message
+
+[2025-09-10 15:05:53] [ERROR] []
+Unable to send message
+
