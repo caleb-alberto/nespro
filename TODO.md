@@ -10,7 +10,3 @@ TODO
 - [ ] figure out how to et telnet/openSSL to send more than one line
       (ie: include a host header) without being interupted
 - [ ] add timeouts and limits (max header size, max body size).
-- [ ] write description README
-  - describe project purpose (HTTP/HTTPS file server)
-  - how to compile and run
-  - any prerequisites (e.g., OpenSSL, Linux only)
