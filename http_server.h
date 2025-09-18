@@ -51,14 +51,16 @@ struct Message {
 
 class HTTPserver {
 public:
-    HTTPserver(std::string port = "8080", const std::string dir = "");
+    HTTPserver(std::string max_connections,
+               std::string port = "8080",
+               const std::string dir = "");
     ~HTTPserver();
     void startListen(std::string backend_url);
 
 protected:
     int startServer();
     virtual void acceptConnection(int& client_sockfd, Message& msg);
-    virtual void closeConnection(const int client);
+    virtual void closeConnection(const int client_sockfd);
     void performThread(int client_sockfd,
                        Message& msg,
                        std::string backend_url);
@@ -78,6 +80,7 @@ protected:
     std::string forwardResponse(Request dynamic_req, std::string backend_url);
 
     int connections;
+    int max_connections;
     int lfd;
     addrinfo hints, *res;
     socklen_t addr_size;

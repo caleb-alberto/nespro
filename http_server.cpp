@@ -1,14 +1,8 @@
-/*
- * at end of processing log message using objcet
- * processing each connection (which happens after accept())
- * should happen in a seperate function for compatibility with
- * multithreading
- */
-
 #include "http_server.h"
 using namespace std;
 
-HTTPserver::HTTPserver(string port, string dir) {
+HTTPserver::HTTPserver(string max_connections, string port, string dir)
+    : max_connections(stoi(max_connections)) {
     memset(&hints, 0, sizeof hints);
     hints.ai_family = AF_INET;
     hints.ai_socktype = SOCK_STREAM;
@@ -67,8 +61,8 @@ void HTTPserver::acceptConnection(int& client_sockfd, Message& msg) {
     }
 }
 
-void HTTPserver::closeConnection(const int client) {
-    close(client);
+void HTTPserver::closeConnection(const int client_sockfd) {
+    close(client_sockfd);
 }
 
 void HTTPserver::startListen(string backend_url) {
@@ -82,19 +76,29 @@ void HTTPserver::startListen(string backend_url) {
     connections = 0;
 
     while(true) {
-        conditional = true;
         Message msg;
+        msg.error = false;
         int client_sockfd;
 
         acceptConnection(client_sockfd, msg);
 
-        if (conditional && connections < 20) {
+        if (!msg.error && connections < max_connections) {
             connections++;
             threads.emplace_back(&HTTPserver::performThread,
                                  this,
                                  client_sockfd,
                                  ref(msg),
                                  backend_url).detach();
+        }
+        else if (msg.error_msg == "Unsuccessful TLS/SSL handshake") {
+            const char* buf = msg.error_msg.c_str();
+            writeClient(client_sockfd, buf, strlen(buf));
+            closeConnection(client_sockfd);
+        }
+        else if (connections >= 20) {
+            const char* buf = "Server is currently busy";
+            writeClient(client_sockfd, buf, strlen(buf));
+            closeConnection(client_sockfd);
         }
     }
 }

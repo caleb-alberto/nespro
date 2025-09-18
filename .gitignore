@@ -3,3 +3,4 @@ server
 *#
 .#*
 tls
+server_log.txt

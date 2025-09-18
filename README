@@ -1,0 +1,52 @@
+NESPRO
+======
+
+  This is a small webserver project I made to learn about HTTP and servers in
+  general. It is not meant to be production-level, but with some more effort it
+  could be. The general structure includes forwarding unrecognized paths to a
+  specified backend URL, TLS/SSL encryption with OpenSSL (if desired),
+  multithreading for HTTP and HTTPS connections with a user-specified maximum
+  number of connections, logging (found in "server_log.txt"), and basic webserver
+  functionality.
+
+BUILDING AND RUNNING the server:
+
+  This project depends on the following libraries:
+ - OpenSSL (-lcrypto and -lssl)
+ - yaml-cpp (-lyaml-cpp)
+ - cURL (-lcurl)
+
+  Debian/Ubuntu:
+    sudo apt install libssl-dev libyaml-cpp-dev libcurl4-openssl-dev
+  macOS:
+    brew install openssl yaml-cpp curl
+  
+  I will assume you know the equivalent install steps if you are on some other
+  system.
+  
+  For compiling the server:
+ - HTTPS:        make
+ - HTTP:         make http
+ - delete build: make clean
+ 
+  To run the server after it's been built:
+ ./server
+ 
+CONFIGURING the server:
+
+  The server contains a default configuration file called "config.yaml" where
+  some default options are found. Some of these options are REQUIRED and the
+  server will not compile/run properly without them properly chosen (mostly just
+  max connections, port, and public folder). Certificate and private key file
+  are only required if you build with SSL (default). The options include:
+ - max connections:  max amount of current connections allowed at one moment
+ - port:             port the server listens on
+ - public folder:    folder including files which can be requested from a client
+ - backend url:      URL the server forwards unrecognised path names too
+ - certificate file: path to TLS/SSL certificate
+ - private key file: path to TLS/SSL private key
+
+DEVELOPMENT:
+  
+  If you want to contribute, feel free to open issues on GitHub or submit pull
+  requests. Suggestions, bug reports, and improvements are always welcome.

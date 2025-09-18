@@ -1,5 +1,6 @@
+max connections: "20"
 port: "8080"
-public folder: "html_files"
-backend url: "http://localhost:3000"
-certificate file: "/etc/letsencrypt/live/calberto.dev/fullchain.pem" # required for ssl
-private key file: "/etc/letsencrypt/live/calberto.dev/privkey.pem"   # required for ssl
+public folder: "public"
+backend url: "localhost:3000"
+certificate file: "" # required for ssl
+private key file: ""   # required for ssl
