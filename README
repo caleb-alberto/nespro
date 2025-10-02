@@ -20,18 +20,18 @@ BUILDING AND RUNNING the server:
     sudo apt install libssl-dev libyaml-cpp-dev libcurl4-openssl-dev
   macOS:
     brew install openssl yaml-cpp curl
-  
+
   I will assume you know the equivalent install steps if you are on some other
   system.
-  
+
   For compiling the server:
  - HTTPS:        make
  - HTTP:         make http
  - delete build: make clean
- 
+
   To run the server after it's been built:
  ./server
- 
+
 CONFIGURING the server:
 
   The server contains a default configuration file called "config.yaml" where
